@@ -1,0 +1,241 @@
+{
+ "resupply": [
+  {
+   "name": "Bishkek",
+   "lon": 74.612,
+   "lat": 42.84
+  },
+  {
+   "name": "Tokmok",
+   "lon": 75.3,
+   "lat": 42.84
+  },
+  {
+   "name": "Burana Tower",
+   "lon": 75.251,
+   "lat": 42.745
+  },
+  {
+   "name": "Kemin",
+   "lon": 75.69,
+   "lat": 42.785
+  },
+  {
+   "name": "Kaindy",
+   "lon": 76.0,
+   "lat": 42.74
+  },
+  {
+   "name": "Balykchy",
+   "lon": 76.186,
+   "lat": 42.461
+  },
+  {
+   "name": "Bokonbayevo",
+   "lon": 76.986,
+   "lat": 42.129
+  },
+  {
+   "name": "Kaji-Say",
+   "lon": 77.168,
+   "lat": 42.13
+  },
+  {
+   "name": "Tosor",
+   "lon": 77.448,
+   "lat": 42.165
+  },
+  {
+   "name": "Tamga",
+   "lon": 77.552,
+   "lat": 42.156
+  },
+  {
+   "name": "Barskoon",
+   "lon": 77.605,
+   "lat": 42.145
+  },
+  {
+   "name": "Kyzyl-Suu",
+   "lon": 77.998,
+   "lat": 42.343
+  },
+  {
+   "name": "Jeti-Ögüz village",
+   "lon": 78.205,
+   "lat": 42.349
+  },
+  {
+   "name": "Karakol",
+   "lon": 78.394,
+   "lat": 42.491
+  },
+  {
+   "name": "Ak-Suu",
+   "lon": 78.527,
+   "lat": 42.486
+  },
+  {
+   "name": "Tüp",
+   "lon": 78.36,
+   "lat": 42.726
+  },
+  {
+   "name": "Ananyevo",
+   "lon": 77.66,
+   "lat": 42.72
+  },
+  {
+   "name": "Cholpon-Ata",
+   "lon": 77.083,
+   "lat": 42.649
+  },
+  {
+   "name": "San-Tash",
+   "lon": 78.8,
+   "lat": 42.76
+  },
+  {
+   "name": "Jyrgalan",
+   "lon": 79.18,
+   "lat": 42.61
+  },
+  {
+   "name": "Kochkor",
+   "lon": 75.752,
+   "lat": 42.214
+  },
+  {
+   "name": "Sary-Bulak",
+   "lon": 75.7,
+   "lat": 41.95
+  },
+  {
+   "name": "Naryn",
+   "lon": 76.0,
+   "lat": 41.428
+  },
+  {
+   "name": "At-Bashy",
+   "lon": 75.8,
+   "lat": 41.17
+  },
+  {
+   "name": "Tamchy",
+   "lon": 76.78,
+   "lat": 42.6
+  },
+  {
+   "name": "Grigorievka",
+   "lon": 77.466,
+   "lat": 42.703
+  },
+  {
+   "name": "Song-Köl yurts",
+   "lon": 75.35,
+   "lat": 41.86
+  },
+  {
+   "name": "Song-Köl yurts",
+   "lon": 75.35,
+   "lat": 41.88
+  },
+  {
+   "name": "Kegety village",
+   "lon": 75.05,
+   "lat": 42.68
+  },
+  {
+   "name": "Issyk-Ata",
+   "lon": 74.99,
+   "lat": 42.62
+  },
+  {
+   "name": "Alamedin",
+   "lon": 74.7,
+   "lat": 42.7
+  },
+  {
+   "name": "Semenovka",
+   "lon": 77.52,
+   "lat": 42.685
+  },
+  {
+   "name": "Isakeev",
+   "lon": 75.8,
+   "lat": 42.16
+  },
+  {
+   "name": "Shamsy",
+   "lon": 75.62,
+   "lat": 42.72
+  },
+  {
+   "name": "Tash-Rabat",
+   "lon": 75.31,
+   "lat": 40.82
+  }
+ ],
+ "trains": [
+  {
+   "name": "Bishkek-2 (main station)",
+   "lon": 74.585,
+   "lat": 42.862,
+   "note": "Main railway station; bike-friendly platforms"
+  },
+  {
+   "name": "Alamedin",
+   "lon": 74.68,
+   "lat": 42.86,
+   "note": "Chui plain halt"
+  },
+  {
+   "name": "Kant",
+   "lon": 74.85,
+   "lat": 42.885,
+   "note": "Chui plain station"
+  },
+  {
+   "name": "Ivanovka",
+   "lon": 75.08,
+   "lat": 42.88,
+   "note": "Chui plain halt"
+  },
+  {
+   "name": "Tokmok",
+   "lon": 75.29,
+   "lat": 42.82,
+   "note": "Chui station near Burana Tower"
+  },
+  {
+   "name": "Bystrovka (Kemin)",
+   "lon": 75.7,
+   "lat": 42.78,
+   "note": "Gateway to Chong-Kemin"
+  },
+  {
+   "name": "Boomskoe (Boom)",
+   "lon": 75.85,
+   "lat": 42.55,
+   "note": "In the Boom Gorge"
+  },
+  {
+   "name": "Kök-Moinok",
+   "lon": 76.03,
+   "lat": 42.5,
+   "note": "Boom Gorge halt"
+  },
+  {
+   "name": "Balykchy (Rybachye)",
+   "lon": 76.19,
+   "lat": 42.46,
+   "note": "Line terminus at Lake Issyk-Köl (seasonal service)"
+  },
+  {
+   "name": "Kara-Balta",
+   "lon": 73.85,
+   "lat": 42.83,
+   "note": "Western Chui terminus"
+  }
+ ]
+}

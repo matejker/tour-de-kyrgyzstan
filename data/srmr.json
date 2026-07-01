@@ -1,0 +1,100 @@
+{
+  "source": "Tracks and profiles are the real published routes — pulled from the organisers' Ride with GPS routes (2025–2026) and komoot tours/collections (2019–2024). 2020 was cancelled (COVID-19).",
+  "editions": [
+    {
+      "year": 2019,
+      "title": "The tough inaugural-era route",
+      "distance_km": 1705,
+      "ascent_m": 25680,
+      "start": "Bishkek",
+      "finish": "Cholpon-Ata",
+      "desc": "One of the earliest editions and a seriously hard one, made tougher by difficult weather. Four long checkpoint-to-checkpoint stages from Bishkek around the central Tien Shan.",
+      "komootCollection": "887966",
+      "komootSlug": "-silk-road-mountain-race-2019",
+      "stages": [
+        {"n": 1, "name": "Bishkek → CP1", "km": 389, "asc": 6470},
+        {"n": 2, "name": "CP1 → CP2", "km": 353, "asc": 4020},
+        {"n": 3, "name": "CP2 → CP3", "km": 381, "asc": 4240},
+        {"n": 4, "name": "CP3 → Finish", "km": 582, "asc": 10960}
+      ]
+    },
+    {
+      "year": 2020,
+      "cancelled": true,
+      "desc": "Cancelled due to the COVID-19 pandemic — no race was held."
+    },
+    {
+      "year": 2021,
+      "title": "Talas to Issyk-Köl",
+      "start": "Talas",
+      "finish": "Balykchy",
+      "desc": "The third edition, back after the pandemic — roughly 1,804 km and 30,500 m of climbing from Talas in the north-west to the shore of Issyk-Köl near Balykchy.",
+      "komootCollection": "896205",
+      "komootSlug": "-silk-road-mountain-race-2021"
+    },
+    {
+      "year": 2022,
+      "title": "A brutal, high edition",
+      "distance_km": 1924,
+      "ascent_m": 36600,
+      "duration_h": 167,
+      "start": "—",
+      "finish": "—",
+      "desc": "1,924 km with a savage 36,600 m of climbing. Highest point 4,150 m, lowest 730 m — from the dusty hills of Jalal-Abad to the river crossings of the Burkhan valley and the shores of Song-Köl.",
+      "komootTour": "625327436",
+      "highlights": [
+        "Dirt road through the hills of Jalal-Abad (≈511 km in)",
+        "Burkhan Valley — remote river crossings and yurts (≈1,137 km)",
+        "Song-Köl Lake (≈1,671 km)"
+      ]
+    },
+    {
+      "year": 2023,
+      "title": "Eight stages, Karakol to the north shore",
+      "distance_km": 1879,
+      "ascent_m": 27730,
+      "duration_h": 157,
+      "start": "Karakol",
+      "finish": "Cholpon-Ata",
+      "desc": "A grand loop of the central and eastern Tien Shan in eight checkpoint stages — over the Chong-Ashuu, out to remote Kel-Suu near the Chinese border, across Song-Köl and home over the Kegety pass.",
+      "komootCollection": "1883607",
+      "komootSlug": "-silk-road-mountain-race-2023",
+      "stages": [
+        {"n": 1, "name": "Karakol → Enilchek", "km": 219, "asc": 2630},
+        {"n": 2, "name": "Enilchek → Saruu", "km": 205, "asc": 2140},
+        {"n": 3, "name": "Saruu → Naryn", "km": 273, "asc": 3570},
+        {"n": 4, "name": "Naryn → Kel-Suu", "km": 141, "asc": 2430},
+        {"n": 5, "name": "Kel-Suu → Baetov", "km": 268, "asc": 2370},
+        {"n": 6, "name": "Baetov → Son-Köl", "km": 340, "asc": 6370},
+        {"n": 7, "name": "Son-Köl → Kegeti", "km": 176, "asc": 2770},
+        {"n": 8, "name": "Kegeti → Cholpon-Ata", "km": 258, "asc": 5460}
+      ]
+    },
+    {
+      "year": 2024,
+      "title": "Fifteen checkpoint stages",
+      "desc": "The 2024 edition, run over fifteen checkpoint stages across the Tien Shan.",
+      "komootCollection": "3118292",
+      "komootSlug": "-2024-silk-road-mountain-race"
+    },
+    {
+      "year": 2025,
+      "title": "Osh to Karakol",
+      "start": "Osh region",
+      "finish": "Karakol",
+      "desc": "A southern start near Osh finishing in Karakol — 1,956 km with 27,861 m of climbing, the official track published on Ride with GPS.",
+      "rwgps": "51995776"
+    },
+    {
+      "year": 2026,
+      "title": "The longest ever — Talas to Cholpon-Ata",
+      "distance_km": 2052,
+      "ascent_m": 35362,
+      "start": "Talas",
+      "finish": "Cholpon-Ata",
+      "desc": "The eighth edition and the longest route yet, with the most climbing by a solid margin and only ~20% paved. It starts in Talas in the north-west, features a new 150 km wilderness link from Baetov toward Torugart and a hike over the Ukok pass past Kök-Ulok lake, then a classic finish over the Kegety and Kök-Ayryk passes to Cholpon-Ata.",
+      "rwgps": "53318000",
+      "official": "https://www.themountainraces.cc/silk-road-mountain-race"
+    }
+  ]
+}

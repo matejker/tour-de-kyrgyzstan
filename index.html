@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tour de Kyrgyzstan · Bikepacking Routes</title>
+  <meta name="description" content="Five 10-day bikepacking routes through Kyrgyzstan — sleep low, ride high. Maps, elevation profiles and resupply points." />
+
+  <link rel="preconnect" href="https://unpkg.com" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand" id="brandHome">
+      <span class="brand-mark">▲</span>
+      <span class="brand-text">Tour de <strong>Kyrgyzstan</strong></span>
+    </div>
+    <nav class="topnav">
+      <a href="#routes" data-nav>Routes</a>
+      <a href="#planner" id="navPlanner">Planner</a>
+      <a href="#master" id="navMaster">Master map</a>
+      <a href="#srmr" id="navSrmr">Silk Road Race</a>
+      <a href="#about" data-nav>About</a>
+    </nav>
+  </header>
+
+  <!-- ============================= LANDING ============================= -->
+  <main id="landing">
+    <section class="hero">
+      <div class="hero-text">
+        <p class="eyebrow">Bikepacking Kyrgyzstan · sleep low, ride high</p>
+        <h1>Fifteen ways to ride the roof of Central Asia.</h1>
+        <p class="lede">
+          Hand-built gravel-and-tarmac bikepacking routes through Kyrgyzstan, inspired by the
+          Silk Road Mountain Race. Fifteen routes in three families — gentle
+          <strong>lake &amp; valley loops</strong>, wilder <strong>high-pass loops</strong>, and
+          straight <strong>expert traverses</strong> over Kegety, Kök-Ayryk and Kalmak-Ashuu to
+          Song-Köl — each with an interactive map, day-by-day elevation profile and resupply points.
+          Study every pass and reusable segment on the <a href="#master">master map</a>,
+          browse the real <a href="#srmr">Silk Road Mountain Race editions (2019–2026)</a>,
+          or <a href="#planner">build your own line</a> in the route planner and download the GPX.
+        </p>
+        <div class="hero-cta">
+          <a class="btn primary" href="#routes">Explore the routes</a>
+          <a class="btn ghost" href="#planner">Plan your own route</a>
+          <a class="btn ghost" href="#master">Master map</a>
+        </div>
+        <ul class="hero-stats">
+          <li><strong>15</strong> routes · 3 families</li>
+          <li><strong>~8,700&nbsp;km</strong> mapped</li>
+          <li><strong>12</strong> passes</li>
+          <li><strong>8</strong> SRMR editions</li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="routes" class="routes-section">
+      <h2 class="section-title">Choose your adventure</h2>
+      <p class="section-sub">Tap any route to see its map, day-by-day elevation profile and resupply points. <strong>Lake &amp; valley routes</strong> keep every camp low; <strong>high-pass loops</strong> are wilder and gravel-first; <strong>expert traverses</strong> are long point-to-point lines over the big passes, with a few nights at altitude.</p>
+      <div class="route-grid" id="routeGrid"></div>
+    </section>
+
+    <section id="about" class="about-section">
+      <h2 class="section-title">How these routes were planned</h2>
+      <div class="about-grid">
+        <div class="about-card">
+          <h3>Sleep low, ride high</h3>
+          <p>Kyrgyzstan is high — but Lake Issyk-Köl (~1600&nbsp;m) and the valley towns let you camp low and warm. Days climb into the side gorges to 2500–3500&nbsp;m, then drop back down to a comfortable bed for the night.</p>
+        </div>
+        <div class="about-card">
+          <h3>Real roads &amp; real elevation</h3>
+          <p>Every track is snapped to actual roads and trails using the open-source BRouter engine, with real SRTM elevation. Tarmac shore roads link the gravel gorge climbs. Download the GPX and ride it.</p>
+        </div>
+        <div class="about-card">
+          <h3>Sensible limits</h3>
+          <p>Never more than 100&nbsp;km in a day (usually 60–90). The lake &amp; valley routes keep camps below ~2000&nbsp;m and passes under 3500&nbsp;m; the high-pass routes cross classics like Kegety (~3780&nbsp;m) with a few high camps. We avoid the long Töö-Ashuu tunnel, the busy Tokmok–Balykchy (Boom Gorge) road, the Kumtor mine and the Torugart border zone.</p>
+        </div>
+        <div class="about-card">
+          <h3>Always near a shop</h3>
+          <p>Resupply towns are flagged on every map and in every day card, so you know where the next bakery, shop or chai stop is.</p>
+        </div>
+      </div>
+      <p class="disclaimer">Routes are planning aids generated from open data. Conditions in the mountains change fast — always carry maps, check the weather, treat your water, and ride within your limits.</p>
+    </section>
+  </main>
+
+  <!-- ============================= DETAIL ============================= -->
+  <main id="detail" hidden>
+    <button class="back-btn" id="backBtn">← All routes</button>
+    <div class="detail-head">
+      <div>
+        <p class="detail-eyebrow" id="dEyebrow"></p>
+        <h1 id="dTitle"></h1>
+        <p class="detail-blurb" id="dBlurb"></p>
+      </div>
+      <a class="btn primary" id="dGpx" download>Download GPX</a>
+    </div>
+
+    <div class="detail-stats" id="dStats"></div>
+
+    <div class="detail-body">
+      <div class="detail-visual">
+        <div id="routeMap" class="route-map"></div>
+        <div class="elev-wrap">
+          <div class="elev-head">
+            <span>Elevation profile</span>
+            <span class="elev-hover" id="elevHover"></span>
+          </div>
+          <canvas id="elevChart"></canvas>
+        </div>
+      </div>
+      <aside class="detail-days">
+        <div class="days-head">
+          <h3>Day by day</h3>
+          <button class="link-btn" id="showAllDays">Show whole route</button>
+        </div>
+        <ol class="day-list" id="dayList"></ol>
+      </aside>
+    </div>
+  </main>
+
+  <!-- ============================= PLANNER ============================= -->
+  <main id="planner" hidden>
+    <button class="back-btn" id="plannerBack">← All routes</button>
+    <div class="planner-head">
+      <h1>Route planner</h1>
+      <p>Build your own line: <strong>click the map</strong> to drop points and it routes between them, and/or <strong>add ready-made segments</strong> from the connectors and the real Silk Road Mountain Race sections. Watch the distance and elevation profile build up, then download the GPX.</p>
+    </div>
+    <div class="planner-toolbar">
+      <label class="pl-field">Routing
+        <select id="plannerProfile">
+          <option value="trekking">Gravel / mixed</option>
+          <option value="car-fast">Road</option>
+        </select>
+      </label>
+      <button class="pl-btn" id="plannerUndo">↶ Undo</button>
+      <button class="pl-btn" id="plannerClear">Clear</button>
+      <label class="pl-btn pl-upload">Upload GPX<input type="file" id="plannerUpload" accept=".gpx,application/gpx+xml" hidden></label>
+      <a class="btn primary pl-gpx" id="plannerGpx">Download GPX</a>
+      <span class="pl-status" id="plannerStatus">Click the map to set your start.</span>
+    </div>
+    <div class="planner-summary">
+      <div class="planner-totals" id="plannerTotals"></div>
+      <div class="pl-chartwrap"><canvas id="plannerChart"></canvas></div>
+    </div>
+    <div class="planner-body">
+      <div class="planner-mapwrap" id="plannerMapWrap">
+        <div id="plannerMap"></div>
+        <div class="master-legend">
+          <div class="lg"><span class="sw" style="background:#e8442b"></span>Routed (your clicks)</div>
+          <div class="lg"><span class="sw" style="background:#2f7fb5"></span>Added segment</div>
+        </div>
+      </div>
+      <aside class="planner-panel">
+        <div class="pl-legs-head"><h3>Your route</h3></div>
+        <ol id="plannerLegs" class="pl-legs"></ol>
+        <h3>Add a segment</h3>
+        <p class="mp-hint">Click to append. Connectors first, then real SRMR sections.</p>
+        <ul id="plannerSegList" class="mp-list"></ul>
+      </aside>
+    </div>
+  </main>
+
+  <!-- ============================= MASTER MAP ============================= -->
+  <main id="master" hidden>
+    <button class="back-btn" id="masterBack">← All routes</button>
+    <div class="master-head">
+      <h1>Master planning map</h1>
+      <p>Every route, plus the building blocks to design your own: all the mountain
+      passes (click one for its climb profile), the reusable segments, resupply
+      towns and railway stops. Toggle the layers to declutter.</p>
+    </div>
+    <div class="master-refs">
+      <div class="ref-col">
+        <h3>Mountain passes</h3>
+        <ul id="passList" class="mp-list"></ul>
+      </div>
+      <div class="ref-col">
+        <h3>Segments — mix &amp; match</h3>
+        <p class="mp-hint">Reusable connectors between the hubs. Click for the profile.</p>
+        <ul id="segList" class="mp-list"></ul>
+      </div>
+      <div class="ref-col">
+        <h3>SRMR race segments</h3>
+        <p class="mp-hint">Real hub-to-hub sections lifted from the Silk Road races. Click for the profile.</p>
+        <ul id="srmrSegList" class="mp-list"></ul>
+      </div>
+    </div>
+
+    <div class="master-toolbar" id="masterToolbar"></div>
+
+    <div class="master-mapwrap" id="masterMapWrap">
+      <div id="masterMap"></div>
+      <div class="master-legend" id="masterLegend"></div>
+      <div class="mp-profile" id="mpProfile" hidden>
+        <div class="mp-profile-head">
+          <span id="mpProfileTitle"></span>
+          <button id="mpProfileClose" title="Close">×</button>
+        </div>
+        <canvas id="mpChart"></canvas>
+        <div id="mpProfileStats" class="mp-stats"></div>
+        <div id="mpRoutes" class="mp-routes"></div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ============================= SRMR ============================= -->
+  <main id="srmr" hidden>
+    <button class="back-btn" id="srmrBack">← All routes</button>
+    <div class="srmr-head">
+      <p class="detail-eyebrow">The race that inspired these routes</p>
+      <h1>Silk Road Mountain Race — the editions</h1>
+      <p class="srmr-intro">
+        The <a href="https://www.themountainraces.cc/silk-road-mountain-race" target="_blank" rel="noopener">Silk Road Mountain Race</a>
+        is a fixed-route, unsupported, single-stage race through the mountains of
+        Kyrgyzstan — roughly 1,700–2,050 km and 25,000–36,000 m of climbing each year.
+        Here's every edition from 2019 to 2026 with its stats and elevation profile.
+        <span class="srmr-note" id="srmrSource"></span>
+      </p>
+    </div>
+
+    <section class="srmr-mapsec">
+      <h2>All editions on one map</h2>
+      <p class="srmr-map-note">The <strong>real official tracks</strong> for every edition, pulled from the organisers' Ride with GPS and komoot routes. Toggle editions on and off; click a track for details.</p>
+      <div class="srmr-map-toggles" id="srmrMapToggles"></div>
+      <div class="master-mapwrap" id="srmrMapWrap">
+        <div id="srmrMap"></div>
+      </div>
+    </section>
+
+    <section class="srmr-compare">
+      <h2>Editions compared</h2>
+      <canvas id="srmrCompare"></canvas>
+    </section>
+
+    <section id="srmrList" class="srmr-list"></section>
+  </main>
+
+  <footer class="footer">
+    <span>Tour de Kyrgyzstan · built for a 10-day ride</span>
+    <span>Maps © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> · routing <a href="https://brouter.de" target="_blank" rel="noopener">BRouter</a> · relief <a href="https://opentopomap.org" target="_blank" rel="noopener">OpenTopoMap</a></span>
+  </footer>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+          integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="assets/app.js"></script>
+</body>
+</html>
