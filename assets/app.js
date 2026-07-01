@@ -70,6 +70,37 @@
     return g;
   }
 
+  // a toggleable layer of (approximate) border-permit zones, drawn as polygons
+  function buildPermitLayer(zones) {
+    const g = L.layerGroup();
+    (zones || []).forEach((z) => {
+      (z.polygons || []).forEach((ring) => {
+        L.polygon(ring, {
+          color: "#b3261e", weight: 1.5, fillColor: "#b3261e", fillOpacity: .14, dashArray: "5 4"
+        }).bindTooltip(`${z.name} — border permit required`, { sticky: true })
+          .bindPopup(`<b>${z.name}</b><br>Border permit required · ${z.border} border<br><span style="color:#666">${z.region} region</span>`)
+          .addTo(g);
+      });
+    });
+    return g;
+  }
+
+  // pill toggles for map overlays: defs = [[key, label, color, on, layerGroup], ...]
+  function buildLayerToggles(bar, map, defs) {
+    bar.innerHTML = "";
+    defs.forEach(([, label, col, on, layer]) => {
+      if (on) layer.addTo(map);
+      const el = document.createElement("label");
+      el.className = "mt-toggle" + (on ? "" : " off");
+      el.innerHTML = `<input type="checkbox" ${on ? "checked" : ""}><span class="dot" style="background:${col}"></span>${label}`;
+      el.querySelector("input").addEventListener("change", (e) => {
+        el.classList.toggle("off", !e.target.checked);
+        if (e.target.checked) layer.addTo(map); else map.removeLayer(layer);
+      });
+      bar.appendChild(el);
+    });
+  }
+
   // show exactly one top-level view, hide the rest
   function showView(id) {
     ["landing", "detail", "master", "srmr", "planner"].forEach((v) => {
@@ -392,7 +423,8 @@
       pois: await fetch("data/pois.json").then((r) => r.json()),
       srmrSegs: await fetch("data/srmr_segments.json").then((r) => r.json()).catch(() => ({ segments: [] })),
       srmrGeo: await fetch("data/srmr_geo.json").then((r) => r.json()).catch(() => ({ editions: [] })),
-      resupply: await fetch("data/resupply.json").then((r) => r.json()).catch(() => ({ places: [] }))
+      resupply: await fetch("data/resupply.json").then((r) => r.json()).catch(() => ({ places: [] })),
+      permits: await fetch("data/permits.json").then((r) => r.json()).catch(() => ({ zones: [] }))
     };
 
     masterMap = L.map("masterMap", { scrollWheelZoom: true });
@@ -457,8 +489,11 @@
         .addTo(gSrmrRoutes);
     });
 
-    masterLayers = { routes: gRoutes, segments: gSegs, passes: gPass, poi: gPoi, srmrseg: gSrmr, srmr: gSrmrRoutes };
-    [gRoutes, gPass, gPoi].forEach((g) => g.addTo(masterMap)); // segments + SRMR off by default
+    // approximate border-permit zones, off by default
+    const gPermit = buildPermitLayer(masterData.permits.zones);
+
+    masterLayers = { routes: gRoutes, segments: gSegs, passes: gPass, poi: gPoi, srmrseg: gSrmr, srmr: gSrmrRoutes, permit: gPermit };
+    [gRoutes, gPass, gPoi, gSrmr].forEach((g) => g.addTo(masterMap)); // SRMR segments on; connectors + SRMR routes off by default
 
     addFullscreenControl(masterMap, "masterMapWrap");
     masterMap.fitBounds(mergeBounds(ROUTES.map((r) => r.bounds)), { padding: [24, 24] });
@@ -492,9 +527,10 @@
   function buildMasterToolbar() {
     const defs = [
       ["routes", "Routes", "#e6194B", true], ["passes", "Mountain passes", "#c0341f", true],
-      ["segments", "Segments", "#d98324", false], ["srmrseg", "SRMR segments", "#7b1fa2", false],
+      ["segments", "Segments", "#d98324", false], ["srmrseg", "SRMR segments", "#7b1fa2", true],
       ["srmr", "SRMR routes", "#2c6b3f", false],
-      ["poi", "Resupply & trains", "#2f7fb5", true]
+      ["poi", "Resupply & trains", "#2f7fb5", true],
+      ["permit", "Border permits", "#b3261e", false]
     ];
     const bar = $("#masterToolbar");
     bar.innerHTML = "";
@@ -1039,19 +1075,24 @@
       plannerMap.setView([42.1, 75.8], 7);
       plannerLayer = L.layerGroup().addTo(plannerMap);
       plannerMap.on("click", (e) => plannerAddPoint(e.latlng));
-      const [seg, ss, pois, resupply] = await Promise.all([
+      const [seg, ss, pois, resupply, permits] = await Promise.all([
         fetch("data/segments.json").then((r) => r.json()),
         fetch("data/srmr_segments.json").then((r) => r.json()).catch(() => ({ segments: [] })),
         fetch("data/pois.json").then((r) => r.json()).catch(() => ({ resupply: [], trains: [] })),
-        fetch("data/resupply.json").then((r) => r.json()).catch(() => ({ places: [] }))
+        fetch("data/resupply.json").then((r) => r.json()).catch(() => ({ places: [] })),
+        fetch("data/permits.json").then((r) => r.json()).catch(() => ({ zones: [] }))
       ]);
       plannerData = { connectors: seg.segments, srmr: ss.segments };
 
-      // resupply towns/villages + train stops — a toggleable overlay (on by default)
-      const gPoi = buildPoiLayer(resupply.places, pois.trains);
-      gPoi.addTo(plannerMap);
+      // base layers only in the corner control; overlays use pill toggles (like the master map)
+      L.control.layers(layers, null, { position: "topright" }).addTo(plannerMap);
 
-      L.control.layers(layers, { "Resupply &amp; trains": gPoi }, { position: "topright" }).addTo(plannerMap);
+      const gPoi = buildPoiLayer(resupply.places, pois.trains);
+      const gPermit = buildPermitLayer(permits.zones);
+      buildLayerToggles($("#plannerLayers"), plannerMap, [
+        ["poi", "Resupply & trains", "#2f7fb5", true, gPoi],
+        ["permit", "Border permits", "#b3261e", false, gPermit]
+      ]);
 
       buildPlannerSegList();
       plannerRedraw(false);

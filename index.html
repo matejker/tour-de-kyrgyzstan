@@ -126,6 +126,7 @@
         <canvas id="plannerChart"></canvas>
       </div>
     </div>
+    <div class="master-toolbar" id="plannerLayers"></div>
     <div class="planner-body">
       <div class="planner-mapwrap" id="plannerMapWrap">
         <div id="plannerMap"></div>
@@ -159,37 +160,38 @@
       passes (click one for its climb profile), the reusable segments, resupply
       towns and railway stops. Toggle the layers to declutter.</p>
     </div>
-    <div class="master-refs">
-      <div class="ref-col">
-        <h3>Mountain passes</h3>
-        <ul id="passList" class="mp-list"></ul>
-      </div>
-      <div class="ref-col">
-        <h3>Segments — mix &amp; match</h3>
-        <p class="mp-hint">Reusable connectors between the hubs. Click for the profile.</p>
-        <ul id="segList" class="mp-list"></ul>
-      </div>
-      <div class="ref-col">
-        <h3>SRMR race segments</h3>
-        <p class="mp-hint">Real hub-to-hub sections lifted from the Silk Road races. Click for the profile.</p>
-        <ul id="srmrSegList" class="mp-list"></ul>
-      </div>
-    </div>
-
     <div class="master-toolbar" id="masterToolbar"></div>
 
-    <div class="master-mapwrap" id="masterMapWrap">
-      <div id="masterMap"></div>
-      <div class="master-legend" id="masterLegend"></div>
-      <div class="mp-profile" id="mpProfile" hidden>
-        <div class="mp-profile-head">
-          <span id="mpProfileTitle"></span>
-          <button id="mpProfileClose" title="Close">×</button>
+    <div class="master-body">
+      <div class="master-mapwrap" id="masterMapWrap">
+        <div id="masterMap"></div>
+        <div class="master-legend" id="masterLegend"></div>
+        <div class="mp-profile" id="mpProfile" hidden>
+          <div class="mp-profile-head">
+            <span id="mpProfileTitle"></span>
+            <button id="mpProfileClose" title="Close">×</button>
+          </div>
+          <canvas id="mpChart"></canvas>
+          <div id="mpProfileStats" class="mp-stats"></div>
+          <div id="mpRoutes" class="mp-routes"></div>
         </div>
-        <canvas id="mpChart"></canvas>
-        <div id="mpProfileStats" class="mp-stats"></div>
-        <div id="mpRoutes" class="mp-routes"></div>
       </div>
+      <aside class="master-refs">
+        <div class="ref-col">
+          <h3>Mountain passes</h3>
+          <ul id="passList" class="mp-list"></ul>
+        </div>
+        <div class="ref-col">
+          <h3>Segments — mix &amp; match</h3>
+          <p class="mp-hint">Reusable connectors between the hubs. Click for the profile.</p>
+          <ul id="segList" class="mp-list"></ul>
+        </div>
+        <div class="ref-col">
+          <h3>SRMR race segments</h3>
+          <p class="mp-hint">Every uninterrupted stretch between two crossroads (or endpoints) of the real Silk Road race tracks. Click for the profile.</p>
+          <ul id="srmrSegList" class="mp-list"></ul>
+        </div>
+      </aside>
     </div>
   </main>
 

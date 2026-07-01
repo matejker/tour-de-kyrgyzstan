@@ -1,17 +1,28 @@
 # -*- coding: utf-8 -*-
 """
-Derive a reusable *segment library* from the real Silk Road Mountain Race tracks.
+Derive a *segment library* from the real Silk Road Mountain Race tracks, where a
+segment is any uninterrupted stretch of track between two "nodes". A node is
+either an endpoint of a track OR a crossroad — a place where two (or more)
+routes meet or cross.
 
-Each edition's genuine GPS track is split at the major hubs it passes (towns and
-well-known points). Every hub-to-hub piece becomes a named segment with real
-geometry and an elevation profile. Segments are de-duplicated by hub pair, keeping
-the most recent edition that rides them.
+How it works (graph edge extraction):
+  1. Fetch every edition's real GPS track (lat/lon/ele) and thin it to ~120 m.
+  2. Snap each point to a ~CELL_M grid cell.
+  3. Build the merged graph over all editions: cells are nodes, consecutive
+     cells are edges. A cell's degree = number of distinct neighbour cells.
+  4. Node cells = cells with degree >= 3 (a real crossroad / junction) plus the
+     first/last cell of every track (endpoints).
+  5. Walk each track and cut it at every node cell. Each piece between two
+     consecutive node cells is one segment.
+  6. De-duplicate segments that different editions ride identically; the most
+     recent edition wins. Each end is named after its nearest town/village.
 
-Output: data/srmr_segments.json
+Output: data/srmr_segments.json  (same schema the site already consumes)
 """
 import json
 import math
 import os
+from collections import defaultdict
 
 from fetch_srmr import (SOURCES, fetch_rwgps, fetch_komoot_tour,
                         fetch_komoot_collection, haversine)
@@ -19,28 +30,16 @@ from fetch_srmr import (SOURCES, fetch_rwgps, fetch_komoot_tour,
 HERE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(os.path.dirname(HERE), "data")
 
-# major hubs the races pass through (name, lat, lon)
-HUBS = [
-    ("Bishkek", 42.87, 74.61), ("Tokmok", 42.83, 75.30), ("Kegety", 42.68, 75.05),
-    ("Balykchy", 42.46, 76.19), ("Cholpon-Ata", 42.65, 77.08), ("Karakol", 42.49, 78.39),
-    ("Enilchek", 42.12, 79.35), ("Saruu", 42.30, 77.92), ("Barskoon", 42.15, 77.61),
-    ("Kochkor", 42.21, 75.75), ("Song-Köl", 41.83, 75.13), ("Chaek", 41.92, 74.99),
-    ("Naryn", 41.43, 76.00), ("At-Bashy", 41.17, 75.80), ("Kel-Suu", 40.66, 76.35),
-    ("Baetov", 41.16, 75.44), ("Kazarman", 41.42, 74.05), ("Jalal-Abad", 40.93, 72.98),
-    ("Osh", 40.53, 72.80), ("Talas", 42.52, 72.24),
-]
-HIT_M = 9000        # a hub is "on the route" if the track passes within this
-MIN_SEG_KM = 18     # ignore tiny slivers
-MAX_SEG_KM = 380    # ignore absurdly long (mis-detected) pieces
+CELL_M = 700         # grid cell size for snapping / junction detection
+MIN_SEG_KM = 5       # ignore tiny slivers between very close crossroads
+NAME_MAX_M = 25000   # a node is named after a town only if one is this close
+LAT0 = 42.0
+DLAT = CELL_M / 111320.0
+DLON = CELL_M / (111320.0 * math.cos(math.radians(LAT0)))
 
 
-def nearest_index(coords, lat, lon):
-    best_i, best_d = -1, 1e18
-    for i in range(0, len(coords), 3):
-        d = haversine([coords[i][0], coords[i][1]], [lat, lon])
-        if d < best_d:
-            best_d, best_i = d, i
-    return best_i, best_d
+def cell_of(lat, lon):
+    return (int(round(lat / DLAT)), int(round(lon / DLON)))
 
 
 def seg_stats(sub):
@@ -84,8 +83,52 @@ def profile(sub, max_pts=180):
     return out
 
 
+_CYR = {
+    "а": "a", "б": "b", "в": "v", "г": "g", "д": "d", "е": "e", "ё": "yo",
+    "ж": "zh", "з": "z", "и": "i", "й": "y", "к": "k", "л": "l", "м": "m",
+    "н": "n", "о": "o", "п": "p", "р": "r", "с": "s", "т": "t", "у": "u",
+    "ф": "f", "х": "kh", "ц": "ts", "ч": "ch", "ш": "sh", "щ": "shch",
+    "ъ": "", "ы": "y", "ь": "", "э": "e", "ю": "yu", "я": "ya",
+    "ң": "ng", "ү": "u", "ө": "o", "і": "i", "қ": "k", "ғ": "g", "һ": "h", "ә": "a",
+}
+
+
+def translit(s):
+    if not s:
+        return s
+    out = []
+    for ch in s:
+        low = ch.lower()
+        if low in _CYR:
+            rep = _CYR[low]
+            out.append(rep.upper() if ch.isupper() and rep else rep)
+        else:
+            out.append(ch)
+    return "".join(out)
+
+
+def load_places():
+    try:
+        with open(os.path.join(DATA, "resupply.json")) as f:
+            return json.load(f).get("places", [])
+    except Exception:  # noqa: BLE001
+        return []
+
+
+def make_namer(places):
+    def label(lat, lon):
+        best, bd = None, 1e18
+        for p in places:
+            d = haversine([lat, lon], [p["lat"], p["lon"]])
+            if d < bd:
+                bd, best = d, p["name"]
+        return translit(best) if bd <= NAME_MAX_M else None
+    return label
+
+
 def main():
-    kept = {}
+    # 1) fetch + thin every edition
+    tracks = []
     for s in SOURCES:
         try:
             if "rwgps" in s:
@@ -98,45 +141,80 @@ def main():
             print(f"  {s['year']}: fetch error {e}"); continue
         if not coords or len(coords) < 50:
             continue
+        pts = downsample(coords, 120.0)
+        cells = [cell_of(p[0], p[1]) for p in pts]
+        tracks.append({"year": s["year"], "color": s["color"], "pts": pts, "cells": cells})
+        print(f"  {s['year']}: {len(pts)} pts")
 
-        # find hubs on this track, in track order
-        hits = []
-        for name, lat, lon in HUBS:
-            idx, d = nearest_index(coords, lat, lon)
-            if d <= HIT_M:
-                hits.append((idx, name))
-        hits.sort()
-        # drop consecutive duplicates
-        dedup = []
-        for h in hits:
-            if not dedup or dedup[-1][1] != h[1]:
-                dedup.append(h)
+    # 2) merged graph over all editions
+    neighbors = defaultdict(set)
+    node_cells = set()
+    for t in tracks:
+        coll = [t["cells"][0]]
+        for c in t["cells"][1:]:
+            if c != coll[-1]:
+                coll.append(c)
+        node_cells.add(coll[0]); node_cells.add(coll[-1])   # endpoints
+        for a, b in zip(coll, coll[1:]):
+            neighbors[a].add(b); neighbors[b].add(a)
+    for c, nb in neighbors.items():
+        if len(nb) >= 3:                                    # crossroads
+            node_cells.add(c)
 
-        for (i0, a), (i1, b) in zip(dedup, dedup[1:]):
-            sub = coords[i0:i1 + 1]
-            if len(sub) < 6:
+    # 3) cut every track at node cells
+    label = make_namer(load_places())
+    kept = {}
+    for t in tracks:
+        pts, cells = t["pts"], t["cells"]
+        bnds = [0]
+        for i in range(1, len(pts)):
+            if cells[i] in node_cells and cells[i] != cells[i - 1]:
+                bnds.append(i)
+        if bnds[-1] != len(pts) - 1:
+            bnds.append(len(pts) - 1)
+        bnds = sorted(set(bnds))
+
+        for j in range(len(bnds) - 1):
+            i0, i1 = bnds[j], bnds[j + 1]
+            sub = pts[i0:i1 + 1]
+            if len(sub) < 4:
                 continue
             dist, asc, mn, mx = seg_stats(sub)
-            if dist < MIN_SEG_KM or dist > MAX_SEG_KM:
+            if dist < MIN_SEG_KM:
                 continue
-            key = frozenset((a, b))
-            rec = {
-                "name": f"{a} → {b}", "from": a, "to": b,
-                "year": s["year"], "color": s["color"],
+
+            a = label(sub[0][0], sub[0][1])
+            b = label(sub[-1][0], sub[-1][1])
+            if a and b and a != b:
+                nm = f"{a} ↔ {b}"
+            elif a and b:
+                nm = f"near {a}"
+            elif a or b:
+                nm = f"{a or b} spur"
+            else:
+                nm = "Remote section"
+
+            # key: endpoint cells (unordered) + a coarse midpoint to keep
+            # genuinely different roads between the same two junctions apart
+            mid = sub[len(sub) // 2]
+            midc = (int(round(mid[0] / (DLAT * 4))), int(round(mid[1] / (DLON * 4))))
+            key = (frozenset((cells[i0], cells[i1])), midc)
+
+            kept[key] = {
+                "name": nm, "from": a or "", "to": b or "",
+                "year": t["year"], "color": t["color"],
                 "distance_km": round(dist, 1), "ascent_m": int(round(asc)),
                 "min_ele": int(round(mn)), "max_ele": int(round(mx)),
-                "coords": [[round(c[0], 5), round(c[1], 5)] for c in downsample(sub)],
+                "coords": [[round(c[0], 5), round(c[1], 5)] for c in sub],
                 "profile": profile(sub),
-            }
-            kept[key] = rec  # SOURCES ascending → most recent edition wins
-        print(f"  {s['year']}: {len(dedup)} hubs on route")
+            }  # SOURCES ascending -> most recent edition wins
 
-    segs = sorted(kept.values(), key=lambda r: (-r["distance_km"]))
+    segs = sorted(kept.values(), key=lambda r: -r["distance_km"])
     with open(os.path.join(DATA, "srmr_segments.json"), "w") as f:
-        json.dump({"segments": segs}, f)
-    print(f"Wrote {len(segs)} unique SRMR segments")
-    for r in segs:
-        print(f"   {r['name']:26s} {r['distance_km']:6.1f} km  +{r['ascent_m']:5d} m  "
+        json.dump({"segments": segs}, f, ensure_ascii=False)
+    print(f"\nWrote {len(segs)} SRMR segments (nodes = endpoints + crossroads)")
+    for r in segs[:60]:
+        print(f"   {r['name'][:34]:34s} {r['distance_km']:6.1f} km  +{r['ascent_m']:5d} m  "
               f"max {r['max_ele']:4d}  (SRMR {r['year']})")
 
 

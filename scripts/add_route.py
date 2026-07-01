@@ -2,15 +2,18 @@
 """
 Add your own GPX as a permanent route on the site (Option B).
 
-It parses a GPX, splits it into ~daily chunks, computes stats + display geometry,
-copies the GPX for download, and registers the route in data/custom_routes.json —
-a file the generator never overwrites and the website merges in alongside the
-built-in routes (shown in an "Added routes" family on the landing page).
+It parses a GPX, splits it into a fixed number of days (10 by default), computes
+stats + display geometry, copies the GPX for download, and registers the route in
+data/custom_routes.json — a file the generator never overwrites and the website
+merges in alongside the built-in routes (shown in a "User generated" family).
 
 Usage:
     python3 scripts/add_route.py my-ride.gpx --name "My Grand Tour"
         [--subtitle "Bishkek loop"] [--start Bishkek] [--color "#0891b2"]
-        [--day-km 80] [--blurb "..."] [--id my-grand-tour]
+        [--days 10] [--day-km 80] [--blurb "..."] [--id my-grand-tour]
+
+By default the route is divided into 10 equal-distance days. Pass --day-km to
+split by a target distance per day instead.
 
 Then commit & push:  git add data && git commit -m "Add route: My Grand Tour" && git push
 """
@@ -69,6 +72,28 @@ def split_days(coords, day_km):
     return days
 
 
+def split_days_n(coords, n):
+    """Split the track into exactly n days of roughly equal distance."""
+    n = max(1, min(n, len(coords) - 1))
+    cum = [0.0]
+    for i in range(1, len(coords)):
+        cum.append(cum[-1] + haversine(coords[i - 1], coords[i]))
+    total = cum[-1]
+    if n == 1 or total == 0:
+        return [coords]
+    target = total / n
+    days, start = [], 0
+    for k in range(1, n):
+        thr = target * k
+        j = start + 1
+        while j < len(coords) - 1 and cum[j] < thr:
+            j += 1
+        days.append(coords[start:j + 1])
+        start = j
+    days.append(coords[start:])
+    return days
+
+
 def main():
     ap = argparse.ArgumentParser(description="Add a GPX as a permanent site route.")
     ap.add_argument("gpx", help="path to the .gpx file")
@@ -77,7 +102,10 @@ def main():
     ap.add_argument("--start", default="")
     ap.add_argument("--color", default="#0891b2")
     ap.add_argument("--blurb", default="")
-    ap.add_argument("--day-km", type=float, default=80.0)
+    ap.add_argument("--days", type=int, default=10,
+                    help="split the route into this many days (default 10)")
+    ap.add_argument("--day-km", type=float, default=0.0,
+                    help="alternative: split by distance per day instead of a day count")
     ap.add_argument("--id", default="")
     args = ap.parse_args()
 
@@ -90,7 +118,7 @@ def main():
     rid = args.id or slugify(args.name)
     os.makedirs(GPXDIR, exist_ok=True); os.makedirs(GEODIR, exist_ok=True)
 
-    days = split_days(coords, args.day_km)
+    days = split_days(coords, args.day_km) if args.day_km > 0 else split_days_n(coords, args.days)
     day_records, geo_days = [], []
     r_dist = r_asc = r_desc = 0.0
     r_min, r_max, max_camp = 99999, -99999, 0
