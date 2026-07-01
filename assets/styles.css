@@ -251,15 +251,18 @@ h1, h2, h3 { line-height: 1.12; margin: 0; letter-spacing: -.02em; }
 .planner-summary #plannerChart { height: 120px !important; }
 @media (max-width: 700px) { .planner-summary { flex-direction: column; } }
 
-.planner-body { display: grid; grid-template-columns: 1.55fr 1fr; gap: 20px; align-items: start; }
+.planner-body { display: block; }
 .planner-mapwrap { position: relative; }
 #plannerMap { height: 74vh; min-height: 460px; border-radius: var(--radius); border: 1px solid var(--line); box-shadow: var(--shadow); background: #dfe7ea; cursor: crosshair; }
 #plannerMapWrap:fullscreen #plannerMap { height: 100vh; border-radius: 0; }
-.planner-panel { max-height: 80vh; overflow-y: auto; }
+.planner-panel { margin-top: 18px; display: grid; grid-template-columns: 1fr 1fr; gap: 4px 32px; align-items: start; }
+.planner-panel .pl-col { min-width: 0; }
 .planner-totals { display: flex; gap: 18px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px; margin-bottom: 12px; }
 .planner-totals .s span { display: block; font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-soft); }
 .planner-totals .s strong { font-size: 1.35rem; font-weight: 800; }
 .pl-chartwrap { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 8px 10px; margin-bottom: 14px; }
+.pl-chart-head { display: flex; justify-content: space-between; align-items: baseline; font-size: .78rem; font-weight: 700; color: var(--ink-soft); margin-bottom: 2px; }
+.pl-chart-head .pl-hover { color: var(--ink); font-variant-numeric: tabular-nums; }
 #plannerChart { width: 100% !important; height: 150px !important; }
 .pl-legs-head { display: flex; justify-content: space-between; align-items: center; }
 .planner-panel h3 { font-size: 1.05rem; font-weight: 800; margin: 12px 0 8px; }
@@ -269,7 +272,7 @@ h1, h2, h3 { line-height: 1.12; margin: 0; letter-spacing: -.02em; }
 .pl-leg .lg-name { font-weight: 600; flex: 1; }
 .pl-leg .lg-meta { color: var(--ink-soft); font-size: .78rem; }
 .pl-empty { color: var(--ink-soft); font-size: .85rem; }
-@media (max-width: 900px) { .planner-body { grid-template-columns: 1fr; } }
+@media (max-width: 760px) { .planner-panel { grid-template-columns: 1fr; } }
 
 /* ---------------- SRMR page ---------------- */
 #srmr { max-width: var(--maxw); margin: 0 auto; padding: 20px clamp(16px, 4vw, 40px) 40px; }

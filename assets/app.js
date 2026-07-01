@@ -54,6 +54,29 @@
   const fmtKm = (v) => Math.round(v).toLocaleString() + " km";
   const fmtM = (v) => Math.round(v).toLocaleString() + " m";
 
+  // a toggleable layer of resupply towns/villages (blue dots) + train stops
+  function buildPoiLayer(places, trains) {
+    const g = L.layerGroup();
+    (places || []).forEach((s) => {
+      const big = s.kind && s.kind !== "village";
+      L.circleMarker([s.lat, s.lon], {
+        radius: big ? 5 : 2.5, color: "#fff", weight: big ? 1.5 : 1,
+        fillColor: "#2f7fb5", fillOpacity: big ? 1 : .85
+      }).bindTooltip(s.name).addTo(g);
+    });
+    (trains || []).forEach((t) => L.marker([t.lat, t.lon], {
+      icon: L.divIcon({ className: "", iconSize: [20, 20], iconAnchor: [10, 10], html: '<div class="train-marker">▤</div>' })
+    }).bindPopup(`<b>${t.name}</b><br>${t.note}`).addTo(g));
+    return g;
+  }
+
+  // show exactly one top-level view, hide the rest
+  function showView(id) {
+    ["landing", "detail", "master", "srmr", "planner"].forEach((v) => {
+      const el = $("#" + v); if (el) el.hidden = (v !== id);
+    });
+  }
+
   let ROUTES = [];
   let routeMap = null;
   let dayLayers = [];
@@ -75,9 +98,8 @@
   function buildCards() {
     const grid = $("#routeGrid");
     const groups = [
-      ["Lake & valley routes", "Sleep low every night — the friendlier tours.", ROUTES.filter((r) => !r.remote && !r.expert)],
-      ["Wilder high-pass routes", "Remote, gravel-first loops over the big passes. A few nights at altitude.", ROUTES.filter((r) => r.remote && !r.expert)],
-      ["Expert straight-line traverses", "Long point-to-point lines that prioritise a straight route over the passes — up to 3 days between resupplies and several nights at 2500–3050 m.", ROUTES.filter((r) => r.expert)]
+      ["AI generated", "Routes designed and routed from open data.", ROUTES.filter((r) => !r.custom)],
+      ["User generated", "Routes imported from GPX files.", ROUTES.filter((r) => r.custom)]
     ];
     groups.forEach(([title, sub, list]) => {
       if (!list.length) return;
@@ -88,11 +110,13 @@
       list.forEach((r) => {
         const card = document.createElement("article");
         card.className = "route-card";
-        const badge = r.expert
-          ? `<span class="rc-tag remote">◆ Expert line</span>`
-          : r.remote
-            ? `<span class="rc-tag remote">▲ High passes</span>`
-            : `<span class="rc-tag">Camps ≤ 2000 m</span>`;
+        const badge = r.custom
+          ? `<span class="rc-tag remote">＋ Added</span>`
+          : r.expert
+            ? `<span class="rc-tag remote">◆ Expert line</span>`
+            : r.remote
+              ? `<span class="rc-tag remote">▲ High passes</span>`
+              : `<span class="rc-tag">Camps ≤ 2000 m</span>`;
         card.innerHTML = `
           <div class="rc-map" id="mini-${r.id}">${badge}<span class="rc-tag start">Start · ${r.start}</span></div>
           <div class="rc-body">
@@ -142,11 +166,12 @@
   }
 
   function showDetailView(r, geo) {
-    $("#landing").hidden = true;
-    $("#detail").hidden = false;
+    showView("detail");
 
     $("#dEyebrow").textContent = `Start · ${r.start}  ·  ${r.num_days} days` +
-      (r.remote ? "  ·  High-pass route (some camps above 2500 m)" : "  ·  Camps below ~2000 m");
+      (r.custom ? "  ·  Imported from GPX"
+        : r.remote ? "  ·  High-pass route (some camps above 2500 m)"
+          : "  ·  Camps below ~2000 m");
     $("#dTitle").textContent = r.name;
     $("#dBlurb").textContent = r.blurb;
     $("#dGpx").href = r.gpx;
@@ -357,9 +382,7 @@
   const catColor = { road: "#2f7fb5", gravel: "#d98324", pass: "#c0341f" };
 
   async function openMaster() {
-    $("#landing").hidden = true;
-    $("#detail").hidden = true;
-    $("#master").hidden = false;
+    showView("master");
     window.scrollTo(0, 0);
     if (masterMap) { setTimeout(() => masterMap.invalidateSize(), 60); return; }
 
@@ -367,7 +390,9 @@
       passes: await fetch("data/passes.json").then((r) => r.json()),
       segments: await fetch("data/segments.json").then((r) => r.json()),
       pois: await fetch("data/pois.json").then((r) => r.json()),
-      srmrSegs: await fetch("data/srmr_segments.json").then((r) => r.json()).catch(() => ({ segments: [] }))
+      srmrSegs: await fetch("data/srmr_segments.json").then((r) => r.json()).catch(() => ({ segments: [] })),
+      srmrGeo: await fetch("data/srmr_geo.json").then((r) => r.json()).catch(() => ({ editions: [] })),
+      resupply: await fetch("data/resupply.json").then((r) => r.json()).catch(() => ({ places: [] }))
     };
 
     masterMap = L.map("masterMap", { scrollWheelZoom: true });
@@ -407,15 +432,8 @@
       gPass.addLayer(m);
     });
 
-    // resupply + trains on one combined layer
-    const gPoi = L.layerGroup();
-    masterData.pois.resupply.forEach((s) => L.circleMarker([s.lat, s.lon], {
-      radius: 4, color: "#fff", weight: 1.5, fillColor: "#2f7fb5", fillOpacity: 1
-    }).bindTooltip(s.name).addTo(gPoi));
-    masterData.pois.trains.forEach((t) => L.marker([t.lat, t.lon], {
-      icon: L.divIcon({ className: "", iconSize: [20, 20], iconAnchor: [10, 10],
-        html: '<div class="train-marker">▤</div>' })
-    }).bindPopup(`<b>${t.name}</b><br>${t.note}`).addTo(gPoi));
+    // resupply towns/villages + trains on one combined layer
+    const gPoi = buildPoiLayer(masterData.resupply.places, masterData.pois.trains);
 
     // SRMR-derived segments (real race sections), off by default
     const gSrmr = L.layerGroup();
@@ -427,7 +445,19 @@
         .addTo(gSrmr);
     });
 
-    masterLayers = { routes: gRoutes, segments: gSegs, passes: gPass, poi: gPoi, srmrseg: gSrmr };
+    // full Silk Road Mountain Race edition tracks (as on the SRMR page), off by default
+    const gSrmrRoutes = L.layerGroup();
+    (masterData.srmrGeo.editions || []).forEach((e) => {
+      const hi = e.profile && e.profile.length ? Math.max(...e.profile.map((p) => p[1])) : 0;
+      L.polyline(e.coords, { color: e.color, weight: 3, opacity: .8 })
+        .bindTooltip(`SRMR ${e.year} · ${Math.round(e.distance_km)} km · ↑ ${fmtM(e.ascent_m)}`, { sticky: true })
+        .on("click", () => showProfile(`Silk Road Mountain Race ${e.year}`, e.profile,
+          `<b>${Math.round(e.distance_km)} km</b> · ↑ ${fmtM(e.ascent_m)}${hi ? ` · high ${fmtM(hi)}` : ""} · full race track`,
+          null, e.coords))
+        .addTo(gSrmrRoutes);
+    });
+
+    masterLayers = { routes: gRoutes, segments: gSegs, passes: gPass, poi: gPoi, srmrseg: gSrmr, srmr: gSrmrRoutes };
     [gRoutes, gPass, gPoi].forEach((g) => g.addTo(masterMap)); // segments + SRMR off by default
 
     addFullscreenControl(masterMap, "masterMapWrap");
@@ -463,6 +493,7 @@
     const defs = [
       ["routes", "Routes", "#e6194B", true], ["passes", "Mountain passes", "#c0341f", true],
       ["segments", "Segments", "#d98324", false], ["srmrseg", "SRMR segments", "#7b1fa2", false],
+      ["srmr", "SRMR routes", "#2c6b3f", false],
       ["poi", "Resupply & trains", "#2f7fb5", true]
     ];
     const bar = $("#masterToolbar");
@@ -585,8 +616,7 @@
   let srmrData = null, srmrGeo = null, srmrCharts = [], srmrMap = null, srmrLayers = {};
 
   async function openSrmr() {
-    $("#landing").hidden = true; $("#detail").hidden = true; $("#master").hidden = true;
-    $("#srmr").hidden = false;
+    showView("srmr");
     window.scrollTo(0, 0);
     if (!srmrData) {
       [srmrData, srmrGeo] = await Promise.all([
@@ -749,10 +779,14 @@
       { radius: 6, color: "#fff", weight: 2, fillColor: "#e8442b", fillOpacity: 1, interactive: false });
     plannerHoverDot.setLatLng([p.lat, p.lon]);
     if (!plannerMap.hasLayer(plannerHoverDot)) plannerHoverDot.addTo(plannerMap);
+    const hi = $("#plannerHoverInfo");
+    if (hi) hi.textContent = `${p.x.toFixed(1)} km · ${Math.round(p.y).toLocaleString()} m`;
   }
   function plannerClearHover() {
     if (plannerChart) { plannerChart.$hoverIndex = null; plannerChart.draw(); }
     if (plannerHoverDot && plannerMap && plannerMap.hasLayer(plannerHoverDot)) plannerMap.removeLayer(plannerHoverDot);
+    const hi = $("#plannerHoverInfo");
+    if (hi) hi.textContent = "";
   }
   const plStatus = (t) => { $("#plannerStatus").textContent = t; };
   const plProfile = () => $("#plannerProfile").value;
@@ -904,9 +938,12 @@
     plannerLegs.forEach((l) => l.coords.forEach((c, i) => { if (all.length && i === 0) return; all.push(c); }));
     let dist = 0, asc = 0;
     plannerLegs.forEach((l) => { dist += l.dist_km; asc += l.ascent; });
+    let maxEle = 0;
+    for (const c of all) if (c[2] > maxEle) maxEle = c[2];
     $("#plannerTotals").innerHTML =
       `<div class="s"><span>Distance</span><strong>${dist ? fmtKm(dist) : "0 km"}</strong></div>
        <div class="s"><span>Climbing</span><strong>${fmtM(asc)}</strong></div>
+       <div class="s"><span>Highest</span><strong>${all.length ? fmtM(maxEle) : "—"}</strong></div>
        <div class="s"><span>Pieces</span><strong>${plannerLegs.length}</strong></div>`;
 
     let combo = [], km = 0;
@@ -992,23 +1029,30 @@
   }
 
   async function openPlanner() {
-    $("#landing").hidden = true; $("#detail").hidden = true; $("#master").hidden = true; $("#srmr").hidden = true;
-    $("#planner").hidden = false;
+    showView("planner");
     window.scrollTo(0, 0);
     if (!plannerMap) {
       plannerMap = L.map("plannerMap");
       const layers = tileLayers();
       layers["Cycle"].addTo(plannerMap);
-      L.control.layers(layers, null, { position: "topright" }).addTo(plannerMap);
       addFullscreenControl(plannerMap, "plannerMapWrap");
       plannerMap.setView([42.1, 75.8], 7);
       plannerLayer = L.layerGroup().addTo(plannerMap);
       plannerMap.on("click", (e) => plannerAddPoint(e.latlng));
-      const [seg, ss] = await Promise.all([
+      const [seg, ss, pois, resupply] = await Promise.all([
         fetch("data/segments.json").then((r) => r.json()),
-        fetch("data/srmr_segments.json").then((r) => r.json()).catch(() => ({ segments: [] }))
+        fetch("data/srmr_segments.json").then((r) => r.json()).catch(() => ({ segments: [] })),
+        fetch("data/pois.json").then((r) => r.json()).catch(() => ({ resupply: [], trains: [] })),
+        fetch("data/resupply.json").then((r) => r.json()).catch(() => ({ places: [] }))
       ]);
       plannerData = { connectors: seg.segments, srmr: ss.segments };
+
+      // resupply towns/villages + train stops — a toggleable overlay (on by default)
+      const gPoi = buildPoiLayer(resupply.places, pois.trains);
+      gPoi.addTo(plannerMap);
+
+      L.control.layers(layers, { "Resupply &amp; trains": gPoi }, { position: "topright" }).addTo(plannerMap);
+
       buildPlannerSegList();
       plannerRedraw(false);
     }
@@ -1063,11 +1107,7 @@
 
   /* ----------------------------- navigation ----------------------------- */
   function showLanding() {
-    $("#detail").hidden = true;
-    $("#master").hidden = true;
-    $("#srmr").hidden = true;
-    $("#planner").hidden = true;
-    $("#landing").hidden = false;
+    showView("landing");
     if (location.hash.startsWith("#r/") || ["#master", "#srmr", "#planner"].includes(location.hash))
       history.replaceState(null, "", location.pathname);
   }
@@ -1104,10 +1144,13 @@
   });
 
   /* ------------------------------- init ------------------------------- */
-  fetch("data/routes.json")
-    .then((r) => r.json())
-    .then((data) => {
-      ROUTES = data.routes;
+  Promise.all([
+    fetch("data/routes.json").then((r) => r.json()),
+    fetch("data/custom_routes.json").then((r) => r.json()).catch(() => ({ routes: [] }))
+  ])
+    .then(([data, custom]) => {
+      const extra = (custom.routes || []).map((r) => ({ ...r, custom: true }));
+      ROUTES = [...data.routes, ...extra];
       buildCards();
       route();
     })

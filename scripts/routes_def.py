@@ -37,72 +37,6 @@ def gravel(*pts):
 
 
 ROUTES = [
-    # ============================================================= ROUTE 1
-    {
-        "id": "grand-traverse",
-        "name": "Grand Traverse: Bishkek → Karakol",
-        "subtitle": "Capital to the far shore",
-        "start": "Bishkek",
-        "color": "#e6194B",
-        "blurb": (
-            "The headline trip — a west-to-east traverse from the capital to "
-            "Karakol. You drop out of the Chui plain through the dramatic Boom "
-            "Gorge to Lake Issyk-Köl, then work along the south shore, climbing "
-            "into a different gorge almost every day (Tong, Tosor, Barskoon, "
-            "Jeti-Ögüz, the Karakol valley). Every single camp is below 2000 m "
-            "while the daily climbs reach 2500-3500 m."
-        ),
-        "days": [
-            {"name": "Bishkek → Tokmok", "end_label": "Tokmok",
-             "desc": "Spin out of the capital across the flat Chui farmland.",
-             "legs": [road([74.612, 42.840], [75.300, 42.840])],
-             "resupply": [["Bishkek", 74.612, 42.840], ["Tokmok", 75.300, 42.840]]},
-            {"name": "Tokmok → Burana → Kemin", "end_label": "Kemin",
-             "desc": "Visit the 11th-century Burana Tower, then roll east to Kemin.",
-             "legs": [road([75.300, 42.840], [75.251, 42.745], [75.690, 42.785])],
-             "resupply": [["Tokmok", 75.300, 42.840], ["Burana Tower", 75.251, 42.745], ["Kemin", 75.690, 42.785]]},
-            {"name": "Chong-Kemin valley", "end_label": "Chong-Kemin (Kaindy)",
-             "desc": "Turn up the green Chong-Kemin valley between two snowy ranges.",
-             "legs": [road([75.690, 42.785], [76.00, 42.74]),
-                      spur([76.00, 42.74], [76.18, 42.72])],
-             "resupply": [["Kemin", 75.690, 42.785], ["Kaindy", 76.00, 42.74]]},
-            {"name": "Boom Gorge → Balykchy", "end_label": "Balykchy",
-             "desc": "Descend the red walls of the Boom Gorge to the lakeshore.",
-             "legs": [road([76.00, 42.74], [75.92, 42.55], [76.186, 42.461])],
-             "resupply": [["Balykchy", 76.186, 42.461]]},
-            {"name": "Balykchy → Bokonbayevo", "end_label": "Bokonbayevo",
-             "desc": "Quiet south-shore road past wide gravel beaches.",
-             "legs": [road([76.186, 42.461], [76.986, 42.129])],
-             "resupply": [["Balykchy", 76.186, 42.461], ["Bokonbayevo", 76.986, 42.129]]},
-            {"name": "Tong valley + → Kaji-Say", "end_label": "Kaji-Say",
-             "desc": "Climb the red Tong valley, then drop to lakeside Kaji-Say.",
-             "legs": [spur([76.986, 42.129], [76.93, 41.95]),
-                      road([76.986, 42.129], [77.168, 42.130])],
-             "resupply": [["Bokonbayevo", 76.986, 42.129], ["Kaji-Say", 77.168, 42.130]]},
-            {"name": "Skazka & Tosor gorge", "end_label": "Tamga",
-             "desc": "Fairytale Canyon, then a long climb up the Tosor gorge.",
-             "legs": [road([77.168, 42.130], [77.448, 42.165]),
-                      spur([77.448, 42.165], [77.49, 42.06]),
-                      road([77.448, 42.165], [77.552, 42.156])],
-             "resupply": [["Kaji-Say", 77.168, 42.130], ["Tosor", 77.448, 42.165], ["Tamga", 77.552, 42.156]]},
-            {"name": "Barskoon waterfalls", "end_label": "Kyzyl-Suu",
-             "desc": "Big switchback climb to the Barskoon falls (below the mine), then on to Kyzyl-Suu.",
-             "legs": [road([77.552, 42.156], [77.605, 42.145]),
-                      spur([77.605, 42.145], [77.69, 42.04]),
-                      road([77.605, 42.145], [77.998, 42.343])],
-             "resupply": [["Tamga", 77.552, 42.156], ["Barskoon", 77.605, 42.145], ["Kyzyl-Suu", 77.998, 42.343]]},
-            {"name": "Jeti-Ögüz Valley of Flowers", "end_label": "Jeti-Ögüz",
-             "desc": "Red sandstone cliffs and alpine meadows under the Broken Heart rock.",
-             "legs": [road([77.998, 42.343], [78.205, 42.349]),
-                      spur([78.205, 42.349], [78.31, 42.27])],
-             "resupply": [["Kyzyl-Suu", 77.998, 42.343], ["Jeti-Ögüz village", 78.205, 42.349]]},
-            {"name": "Karakol valley finish", "end_label": "Karakol",
-             "desc": "A final climb up the Karakol valley to the ski base, then into town.",
-             "legs": [road([78.205, 42.349], [78.394, 42.491]),
-                      spur([78.394, 42.491], [78.50, 42.40])],
-             "resupply": [["Jeti-Ögüz village", 78.205, 42.349], ["Karakol", 78.394, 42.491]]},
-        ],
-    },
     # ============================================================= ROUTE 2
     {
         "id": "issykkol-loop",
@@ -230,125 +164,6 @@ ROUTES = [
              "resupply": [["Karakol", 78.394, 42.491]]},
         ],
     },
-    # ============================================================= ROUTE 4
-    {
-        "id": "naryn-highlands",
-        "name": "Kochkor & Naryn Highlands",
-        "subtitle": "Interior highlands out-and-back",
-        "start": "Balykchy",
-        "color": "#911eb4",
-        "blurb": (
-            "The interior option. From the lake at Balykchy you climb to the "
-            "Kochkor basin, cross the Dolon pass (~3030 m, by day, well below the "
-            "3500 m limit) to the old Silk-Road town of Naryn, and explore the "
-            "wide At-Bashy valley. Big-sky highland riding, but the camps stay in "
-            "the valley towns (1800-2100 m) and Song-Köl (3016 m) is admired from "
-            "below rather than slept on."
-        ),
-        "days": [
-            {"name": "Balykchy → Kochkor", "end_label": "Kochkor",
-             "desc": "Climb away from the lake over rolling steppe to the Kochkor basin.",
-             "legs": [road([76.186, 42.461], [75.93, 42.33], [75.752, 42.214])],
-             "resupply": [["Balykchy", 76.186, 42.461], ["Kochkor", 75.752, 42.214]]},
-            {"name": "Kochkor → Sary-Bulak", "end_label": "Sary-Bulak",
-             "desc": "South up the valley toward the Dolon pass approaches.",
-             "legs": [road([75.752, 42.214], [75.70, 41.95])],
-             "resupply": [["Kochkor", 75.752, 42.214], ["Sary-Bulak", 75.70, 41.95]]},
-            {"name": "Dolon pass → Naryn", "end_label": "Naryn",
-             "desc": "Over the Dolon pass (~3030 m) and down to Naryn.",
-             "legs": [road([75.70, 41.95], [75.79, 41.70], [76.000, 41.428])],
-             "resupply": [["Sary-Bulak", 75.70, 41.95], ["Naryn", 76.000, 41.428]]},
-            {"name": "Naryn → At-Bashy", "end_label": "At-Bashy",
-             "desc": "Down the Naryn river then up into the broad At-Bashy valley.",
-             "legs": [road([76.000, 41.428], [75.80, 41.17])],
-             "resupply": [["Naryn", 76.000, 41.428], ["At-Bashy", 75.80, 41.17]]},
-            {"name": "At-Bashy valley loop", "end_label": "At-Bashy",
-             "desc": "Ride deep into the wide valley toward the western foothills, then back.",
-             "legs": [road([75.80, 41.17], [75.37, 41.03], [75.80, 41.17])],
-             "resupply": [["At-Bashy", 75.80, 41.17]]},
-            {"name": "At-Bashy → Naryn", "end_label": "Naryn",
-             "desc": "Return to Naryn with time for the bazaar and a hot meal.",
-             "legs": [road([75.80, 41.17], [76.000, 41.428])],
-             "resupply": [["At-Bashy", 75.80, 41.17], ["Naryn", 76.000, 41.428]]},
-            {"name": "Salkyn-Tör forest", "end_label": "Naryn",
-             "desc": "Spin up to the spruce forest of Salkyn-Tör national park, then explore the Naryn river bank.",
-             "legs": [road([76.000, 41.428], [76.08, 41.50], [76.16, 41.55], [76.000, 41.428]),
-                      road([76.000, 41.428], [75.86, 41.40], [76.000, 41.428])],
-             "resupply": [["Naryn", 76.000, 41.428]]},
-            {"name": "Naryn → Dolon → Sary-Bulak", "end_label": "Sary-Bulak",
-             "desc": "Back over the Dolon pass, camping low at Sary-Bulak.",
-             "legs": [road([76.000, 41.428], [75.79, 41.70], [75.70, 41.95])],
-             "resupply": [["Naryn", 76.000, 41.428], ["Sary-Bulak", 75.70, 41.95]]},
-            {"name": "Sary-Bulak → Orto-Tokoy", "end_label": "Kochkor",
-             "desc": "Down to the Orto-Tokoy reservoir, then back to Kochkor.",
-             "legs": [road([75.70, 41.95], [75.752, 42.214], [75.93, 42.33], [75.752, 42.214])],
-             "resupply": [["Sary-Bulak", 75.70, 41.95], ["Kochkor", 75.752, 42.214]]},
-            {"name": "Kochkor → Balykchy", "end_label": "Balykchy",
-             "desc": "Long descent off the highlands back to the lakeshore.",
-             "legs": [road([75.752, 42.214], [75.93, 42.33], [76.186, 42.461])],
-             "resupply": [["Kochkor", 75.752, 42.214], ["Balykchy", 76.186, 42.461]]},
-        ],
-    },
-    # ============================================================= ROUTE 5
-    {
-        "id": "north-chong-kemin",
-        "name": "Chong-Kemin & North Shore",
-        "subtitle": "Bishkek → Cholpon-Ata via the green valley",
-        "start": "Bishkek",
-        "color": "#f58231",
-        "blurb": (
-            "A gentler, greener traverse for those who want big scenery without "
-            "the relentless climbing. Escape Bishkek into the lush Chong-Kemin "
-            "valley, drop through the Boom Gorge to the lake, and follow the "
-            "north shore of Issyk-Köl — beaches, petroglyphs and spruce-lined "
-            "gorges — all the way to Karakol. Low camps throughout."
-        ),
-        "days": [
-            {"name": "Bishkek → Tokmok", "end_label": "Tokmok",
-             "desc": "Leave the capital on quiet back roads across the Chui plain.",
-             "legs": [road([74.612, 42.840], [75.300, 42.840])],
-             "resupply": [["Bishkek", 74.612, 42.840], ["Tokmok", 75.300, 42.840]]},
-            {"name": "Tokmok → Burana → Kemin", "end_label": "Kemin",
-             "desc": "The Burana Tower minaret, then east to the town of Kemin.",
-             "legs": [road([75.300, 42.840], [75.251, 42.745], [75.690, 42.785])],
-             "resupply": [["Tokmok", 75.300, 42.840], ["Burana Tower", 75.251, 42.745], ["Kemin", 75.690, 42.785]]},
-            {"name": "Chong-Kemin valley", "end_label": "Chong-Kemin (Kaindy)",
-             "desc": "Turn up the beautiful Chong-Kemin valley toward the alpine lakes.",
-             "legs": [road([75.690, 42.785], [76.00, 42.74]),
-                      spur([76.00, 42.74], [76.18, 42.72])],
-             "resupply": [["Kemin", 75.690, 42.785], ["Kaindy", 76.00, 42.74]]},
-            {"name": "Boom Gorge → Balykchy", "end_label": "Balykchy",
-             "desc": "Descend the Boom Gorge to the western tip of the lake.",
-             "legs": [road([76.00, 42.74], [75.92, 42.55], [76.186, 42.461])],
-             "resupply": [["Balykchy", 76.186, 42.461]]},
-            {"name": "Balykchy → Cholpon-Ata", "end_label": "Cholpon-Ata",
-             "desc": "First taste of the lake along the north-shore beaches.",
-             "legs": [road([76.186, 42.461], [76.78, 42.60], [77.083, 42.649])],
-             "resupply": [["Balykchy", 76.186, 42.461], ["Tamchy", 76.78, 42.60], ["Cholpon-Ata", 77.083, 42.649]]},
-            {"name": "Cholpon-Ata rest & petroglyphs", "end_label": "Cholpon-Ata",
-             "desc": "Easy day: the open-air petroglyph museum and a shoreline spin.",
-             "legs": [road([77.083, 42.649], [77.20, 42.65], [77.30, 42.66], [77.083, 42.649])],
-             "resupply": [["Cholpon-Ata", 77.083, 42.649]]},
-            {"name": "Cholpon-Ata → Ananyevo", "end_label": "Ananyevo",
-             "desc": "Ride east past Grigorievka and Semenovka gorge mouths.",
-             "legs": [road([77.083, 42.649], [77.466, 42.703], [77.66, 42.72])],
-             "resupply": [["Cholpon-Ata", 77.083, 42.649], ["Grigorievka", 77.466, 42.703], ["Ananyevo", 77.66, 42.72]]},
-            {"name": "Ananyevo → Tüp", "end_label": "Tüp",
-             "desc": "Continue along the quiet eastern north shore to Tüp.",
-             "legs": [road([77.66, 42.72], [78.0, 42.74], [78.36, 42.726])],
-             "resupply": [["Ananyevo", 77.66, 42.72], ["Tüp", 78.36, 42.726]]},
-            {"name": "Tüp → Karakol → Jeti-Ögüz", "end_label": "Jeti-Ögüz",
-             "desc": "Round the east end of the lake to the red cliffs of Jeti-Ögüz.",
-             "legs": [road([78.36, 42.726], [78.394, 42.491], [78.205, 42.349])],
-             "resupply": [["Tüp", 78.36, 42.726], ["Karakol", 78.394, 42.491], ["Jeti-Ögüz village", 78.205, 42.349]]},
-            {"name": "Jeti-Ögüz Valley of Flowers", "end_label": "Karakol",
-             "desc": "A final climb into the Valley of Flowers, then to Karakol.",
-             "legs": [spur([78.205, 42.349], [78.31, 42.27]),
-                      road([78.205, 42.349], [78.394, 42.491])],
-             "resupply": [["Jeti-Ögüz village", 78.205, 42.349], ["Karakol", 78.394, 42.491]]},
-        ],
-    },
-
     # ========================================================== ROUTE 6
     {
         "id": "kegety-traverse",
@@ -469,52 +284,6 @@ ROUTES = [
         ],
     },
 
-    # ========================================================== ROUTE 8
-    {
-        "id": "songkol-high-loop",
-        "name": "Song-Köl High Loop",
-        "subtitle": "Kochkor gravel loop over three passes",
-        "start": "Kochkor",
-        "color": "#a16207",
-        "remote": True,
-        "blurb": (
-            "A compact, almost entirely gravel loop from Kochkor built around the "
-            "jewel of the central Tien Shan — the high lake of Song-Köl. You climb "
-            "in over the Kalmak-Ashuu pass, ride the full lakeshore, drop out over "
-            "the Kyzart pass into the Jumgal valley, and loop back through the "
-            "Ötük backcountry. Short mountain days at altitude. NOTE: two high "
-            "nights at Song-Köl (~3000 m)."
-        ),
-        "days": [
-            {"name": "Kochkor → Kalmak-Ashuu foot", "end_label": "Döng-Alysh jailoo",
-             "desc": "Warm-up on quiet gravel to the foot of the pass.",
-             "legs": [gravel([75.752, 42.214], [75.63, 42.06], [75.56, 41.99])],
-             "resupply": [["Kochkor", 75.752, 42.214]]},
-            {"name": "Kalmak-Ashuu → Song-Köl", "end_label": "Song-Köl (NE shore)",
-             "desc": "The 32-Parrots switchbacks onto the Song-Köl plateau.",
-             "legs": [gravel([75.56, 41.99], [75.36, 41.96], [75.30, 41.94], [75.35, 41.86])],
-             "resupply": [["Song-Köl yurts", 75.35, 41.86]]},
-            {"name": "Song-Köl south & west shore", "end_label": "Song-Köl (NE shore)",
-             "desc": "A slow lap of the lakeshore, past herders' yurts and grazing horses.",
-             "legs": [gravel([75.35, 41.88], [75.15, 41.83], [75.28, 41.86], [75.35, 41.88])],
-             "resupply": [["Song-Köl yurts", 75.35, 41.88]]},
-            {"name": "Song-Köl → Kochkor", "end_label": "Kochkor",
-             "desc": "Descend the 32-Parrots to Sary-Bulak, then roll to Kochkor.",
-             "legs": [gravel([75.35, 41.88], [75.55, 41.92], [75.70, 41.95]),
-                      road([75.70, 41.95], [75.752, 42.214])],
-             "resupply": [["Sary-Bulak", 75.70, 41.95], ["Kochkor", 75.752, 42.214]]},
-            {"name": "Kochkor → Köl-Ükök trail", "end_label": "Isakeev",
-             "desc": "Gravel spur toward the alpine lake of Köl-Ükök, camp low at Isakeev.",
-             "legs": [spur([75.752, 42.214], [75.83, 42.10], [75.88, 42.05]),
-                      road([75.752, 42.214], [75.80, 42.16])],
-             "resupply": [["Kochkor", 75.752, 42.214], ["Isakeev", 75.80, 42.16]]},
-            {"name": "Orto-Tokoy reservoir", "end_label": "Kochkor",
-             "desc": "Loop out to the turquoise Orto-Tokoy reservoir and back to Kochkor.",
-             "legs": [road([75.80, 42.16], [75.93, 42.33], [75.85, 42.25], [75.752, 42.214])],
-             "resupply": [["Kochkor", 75.752, 42.214]]},
-        ],
-    },
-
     # ========================================================== ROUTE 9
     {
         "id": "shamsy-kegety-loop",
@@ -561,65 +330,6 @@ ROUTES = [
              "desc": "Down through the Alamedin gorge mouth back to the capital.",
              "legs": [road([74.99, 42.62], [74.80, 42.70], [74.612, 42.840])],
              "resupply": [["Alamedin", 74.70, 42.70], ["Bishkek", 74.612, 42.840]]},
-        ],
-    },
-
-    # ========================================================== ROUTE 10
-    {
-        "id": "naryn-backcountry",
-        "name": "Naryn Backcountry",
-        "subtitle": "Kochkor → Naryn → Eki-Naryn",
-        "start": "Kochkor",
-        "color": "#1e3a8a",
-        "remote": True,
-        "blurb": (
-            "A quieter, gravel-first version of the interior for those who want "
-            "remote canyons over lakeshore cafés. From Kochkor you cross the Dolon "
-            "pass (~3030 m) to the Silk-Road town of Naryn, then push out to the "
-            "little-visited Eki-Naryn canyon where two rivers meet, and explore the "
-            "broad At-Bashy valley. Camps stay in the valley towns (1800-2100 m)."
-        ),
-        "days": [
-            {"name": "Kochkor → Dolon foot", "end_label": "Sary-Bulak",
-             "desc": "South up the valley to the foot of the Dolon pass.",
-             "legs": [road([75.752, 42.214], [75.70, 41.95])],
-             "resupply": [["Kochkor", 75.752, 42.214], ["Sary-Bulak", 75.70, 41.95]]},
-            {"name": "Dolon Pass → Naryn", "end_label": "Naryn",
-             "desc": "Over the Dolon pass (~3030 m) and down to Naryn.",
-             "legs": [road([75.70, 41.95], [75.79, 41.70], [76.000, 41.428])],
-             "resupply": [["Sary-Bulak", 75.70, 41.95], ["Naryn", 76.000, 41.428]]},
-            {"name": "Naryn → Eki-Naryn", "end_label": "Eki-Naryn",
-             "desc": "Follow the Naryn river gorge northeast into the remote Eki-Naryn canyon.",
-             "legs": [gravel([76.000, 41.428], [76.20, 41.50], [76.35, 41.55])],
-             "resupply": [["Naryn", 76.000, 41.428]]},
-            {"name": "Eki-Naryn explore", "end_label": "Eki-Naryn",
-             "desc": "Ride deeper into the confluence country, then back to camp.",
-             "legs": [gravel([76.35, 41.55], [76.50, 41.60], [76.35, 41.55])],
-             "resupply": []},
-            {"name": "Eki-Naryn → Naryn", "end_label": "Naryn",
-             "desc": "Retrace the river gorge back to Naryn for a resupply.",
-             "legs": [gravel([76.35, 41.55], [76.20, 41.50], [76.000, 41.428])],
-             "resupply": [["Naryn", 76.000, 41.428]]},
-            {"name": "Naryn → At-Bashy", "end_label": "At-Bashy",
-             "desc": "Down the river then up into the huge At-Bashy valley.",
-             "legs": [road([76.000, 41.428], [75.80, 41.17])],
-             "resupply": [["Naryn", 76.000, 41.428], ["At-Bashy", 75.80, 41.17]]},
-            {"name": "At-Bashy valley", "end_label": "At-Bashy",
-             "desc": "Explore the wide valley west toward the foothills, then back.",
-             "legs": [road([75.80, 41.17], [75.40, 41.03], [75.80, 41.17])],
-             "resupply": [["At-Bashy", 75.80, 41.17]]},
-            {"name": "At-Bashy → Naryn", "end_label": "Naryn",
-             "desc": "Back to Naryn along the river with the wind at your back.",
-             "legs": [road([75.80, 41.17], [76.000, 41.428])],
-             "resupply": [["At-Bashy", 75.80, 41.17], ["Naryn", 76.000, 41.428]]},
-            {"name": "Naryn → Dolon foot", "end_label": "Sary-Bulak",
-             "desc": "Climb back toward the Dolon pass, camping low at Sary-Bulak.",
-             "legs": [road([76.000, 41.428], [75.79, 41.70], [75.70, 41.95])],
-             "resupply": [["Naryn", 76.000, 41.428], ["Sary-Bulak", 75.70, 41.95]]},
-            {"name": "Dolon → Kochkor", "end_label": "Kochkor",
-             "desc": "Final crossing of the Dolon pass and descent to Kochkor.",
-             "legs": [road([75.70, 41.95], [75.752, 42.214])],
-             "resupply": [["Sary-Bulak", 75.70, 41.95], ["Kochkor", 75.752, 42.214]]},
         ],
     },
 
@@ -711,50 +421,6 @@ ROUTES = [
         ],
     },
 
-    # ========================================================== ROUTE 13
-    {
-        "id": "southern-silk-line",
-        "name": "Southern Silk Line",
-        "subtitle": "Balykchy → Naryn → Tash-Rabat",
-        "start": "Balykchy",
-        "color": "#7c2d12",
-        "remote": True, "expert": True,
-        "blurb": (
-            "A straight southward push from the lake deep into Silk-Road country, "
-            "finishing at the stone caravanserai of Tash-Rabat. You cross the "
-            "Dolon pass to Naryn, dip into the remote Eki-Naryn canyon, then ride "
-            "the vast At-Bashy valley to Tash-Rabat. EXPERT: high camps at a Dolon "
-            "jailoo, Eki-Naryn and Tash-Rabat (~3000 m), and long gaps between shops."
-        ),
-        "days": [
-            {"name": "Balykchy → Kochkor", "end_label": "Kochkor",
-             "desc": "Climb off the lake over the steppe to the Kochkor basin.",
-             "legs": [road([76.186, 42.461], [75.93, 42.33], [75.752, 42.214])],
-             "resupply": [["Balykchy", 76.186, 42.461], ["Kochkor", 75.752, 42.214]]},
-            {"name": "Kochkor → Dolon jailoo", "end_label": "Dolon jailoo",
-             "desc": "Up toward the Dolon pass to a high summer-pasture camp.",
-             "legs": [road([75.752, 42.214], [75.70, 41.95], [75.75, 41.78])],
-             "resupply": [["Kochkor", 75.752, 42.214], ["Sary-Bulak", 75.70, 41.95]]},
-            {"name": "Dolon → Naryn", "end_label": "Naryn",
-             "desc": "Over the Dolon pass (~3030 m) and down to Naryn.",
-             "legs": [road([75.75, 41.78], [75.79, 41.70], [76.000, 41.428])],
-             "resupply": [["Naryn", 76.000, 41.428]]},
-            {"name": "Naryn → Eki-Naryn", "end_label": "Eki-Naryn",
-             "desc": "Follow the river gorge into the remote Eki-Naryn confluence country.",
-             "legs": [gravel([76.000, 41.428], [76.20, 41.50], [76.35, 41.55])],
-             "resupply": [["Naryn", 76.000, 41.428]]},
-            {"name": "Eki-Naryn → Naryn → At-Bashy", "end_label": "At-Bashy",
-             "desc": "Back to Naryn to resupply, then up into the huge At-Bashy valley.",
-             "legs": [gravel([76.35, 41.55], [76.20, 41.50], [76.000, 41.428]),
-                      road([76.000, 41.428], [75.80, 41.17])],
-             "resupply": [["Naryn", 76.000, 41.428], ["At-Bashy", 75.80, 41.17]]},
-            {"name": "At-Bashy → Tash-Rabat", "end_label": "Tash-Rabat",
-             "desc": "Up the valley to the 15th-century stone caravanserai of Tash-Rabat.",
-             "legs": [road([75.80, 41.17], [75.50, 41.05], [75.31, 40.82])],
-             "resupply": [["At-Bashy", 75.80, 41.17], ["Tash-Rabat", 75.31, 40.82]]},
-        ],
-    },
-
     # ========================================================== ROUTE 14
     {
         "id": "grand-traverse-xl",
@@ -812,49 +478,6 @@ ROUTES = [
              "desc": "Final straight foothill roll to the capital and the flight home.",
              "legs": [road([75.05, 42.68], [74.85, 42.80], [74.612, 42.840])],
              "resupply": [["Kegety village", 75.05, 42.68], ["Bishkek", 74.612, 42.840]]},
-        ],
-    },
-
-    # ========================================================== ROUTE 15
-    {
-        "id": "songkol-skyline",
-        "name": "Song-Köl Skyline",
-        "subtitle": "Balykchy → Song-Köl → Naryn",
-        "start": "Balykchy",
-        "color": "#a21caf",
-        "remote": True, "expert": True,
-        "blurb": (
-            "A clean interior traverse linking the big lake to the Silk-Road town "
-            "of Naryn over the high one — Song-Köl. Climb from Balykchy to Kochkor, "
-            "up the 32-Parrots to Song-Köl for a lakeside night on the roof of the "
-            "country, then down to Sary-Bulak, over the Dolon pass to Naryn and on "
-            "to At-Bashy. EXPERT: a night on the shore of Song-Köl (~3040 m)."
-        ),
-        "days": [
-            {"name": "Balykchy → Kochkor", "end_label": "Kochkor",
-             "desc": "Climb off the lake to the Kochkor basin.",
-             "legs": [road([76.186, 42.461], [75.93, 42.33], [75.752, 42.214])],
-             "resupply": [["Balykchy", 76.186, 42.461], ["Kochkor", 75.752, 42.214]]},
-            {"name": "Kochkor → Kalmak-Ashuu foot", "end_label": "Döng-Alysh jailoo",
-             "desc": "Quiet gravel to the foot of the 32-Parrots.",
-             "legs": [gravel([75.752, 42.214], [75.63, 42.06], [75.56, 41.99])],
-             "resupply": [["Kochkor", 75.752, 42.214]]},
-            {"name": "Kalmak-Ashuu → Song-Köl", "end_label": "Song-Köl (NE shore)",
-             "desc": "Up onto the plateau and along the lakeshore to the yurt camps.",
-             "legs": [gravel([75.56, 41.99], [75.30, 41.94], [75.35, 41.86])],
-             "resupply": [["Song-Köl yurts", 75.35, 41.86]]},
-            {"name": "Song-Köl → Sary-Bulak", "end_label": "Sary-Bulak",
-             "desc": "Descend the 32-Parrots switchbacks off the plateau to Sary-Bulak.",
-             "legs": [gravel([75.35, 41.86], [75.55, 41.92], [75.70, 41.95])],
-             "resupply": [["Sary-Bulak", 75.70, 41.95]]},
-            {"name": "Sary-Bulak → Dolon → Naryn", "end_label": "Naryn",
-             "desc": "Over the Dolon pass (~3030 m) and down to Naryn.",
-             "legs": [road([75.70, 41.95], [75.79, 41.70], [76.000, 41.428])],
-             "resupply": [["Naryn", 76.000, 41.428]]},
-            {"name": "Naryn → At-Bashy", "end_label": "At-Bashy",
-             "desc": "Down the river then up into the broad At-Bashy valley.",
-             "legs": [road([76.000, 41.428], [75.80, 41.17])],
-             "resupply": [["Naryn", 76.000, 41.428], ["At-Bashy", 75.80, 41.17]]},
         ],
     },
 ]

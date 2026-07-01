@@ -25,7 +25,6 @@
       <a href="#planner" id="navPlanner">Planner</a>
       <a href="#master" id="navMaster">Master map</a>
       <a href="#srmr" id="navSrmr">Silk Road Race</a>
-      <a href="#about" data-nav>About</a>
     </nav>
   </header>
 
@@ -34,15 +33,14 @@
     <section class="hero">
       <div class="hero-text">
         <p class="eyebrow">Bikepacking Kyrgyzstan · sleep low, ride high</p>
-        <h1>Fifteen ways to ride the roof of Central Asia.</h1>
+        <h1>Ride the roof of Central Asia.</h1>
         <p class="lede">
           Hand-built gravel-and-tarmac bikepacking routes through Kyrgyzstan, inspired by the
-          Silk Road Mountain Race. Fifteen routes in three families — gentle
-          <strong>lake &amp; valley loops</strong>, wilder <strong>high-pass loops</strong>, and
-          straight <strong>expert traverses</strong> over Kegety, Kök-Ayryk and Kalmak-Ashuu to
-          Song-Köl — each with an interactive map, day-by-day elevation profile and resupply points.
-          Study every pass and reusable segment on the <a href="#master">master map</a>,
-          browse the real <a href="#srmr">Silk Road Mountain Race editions (2019–2026)</a>,
+          Silk Road Mountain Race. Loops around Issyk-Köl and wilder gravel traverses over Kegety,
+          Kök-Ayryk and Kalmak-Ashuu to Song-Köl — each with an interactive map, day-by-day
+          elevation profile and resupply points. Study every pass and reusable segment on the
+          <a href="#master">master map</a>, browse the real
+          <a href="#srmr">Silk Road Mountain Race editions (2019–2026)</a>,
           or <a href="#planner">build your own line</a> in the route planner and download the GPX.
         </p>
         <div class="hero-cta">
@@ -51,8 +49,8 @@
           <a class="btn ghost" href="#master">Master map</a>
         </div>
         <ul class="hero-stats">
-          <li><strong>15</strong> routes · 3 families</li>
-          <li><strong>~8,700&nbsp;km</strong> mapped</li>
+          <li><strong>8</strong> curated routes</li>
+          <li><strong>~4,800&nbsp;km</strong> mapped</li>
           <li><strong>12</strong> passes</li>
           <li><strong>8</strong> SRMR editions</li>
         </ul>
@@ -61,31 +59,8 @@
 
     <section id="routes" class="routes-section">
       <h2 class="section-title">Choose your adventure</h2>
-      <p class="section-sub">Tap any route to see its map, day-by-day elevation profile and resupply points. <strong>Lake &amp; valley routes</strong> keep every camp low; <strong>high-pass loops</strong> are wilder and gravel-first; <strong>expert traverses</strong> are long point-to-point lines over the big passes, with a few nights at altitude.</p>
+      <p class="section-sub">Tap any route to see its map, day-by-day elevation profile and resupply points. <strong>AI generated</strong> routes are designed and routed from open data; <strong>user generated</strong> routes are imported from your own GPX files.</p>
       <div class="route-grid" id="routeGrid"></div>
-    </section>
-
-    <section id="about" class="about-section">
-      <h2 class="section-title">How these routes were planned</h2>
-      <div class="about-grid">
-        <div class="about-card">
-          <h3>Sleep low, ride high</h3>
-          <p>Kyrgyzstan is high — but Lake Issyk-Köl (~1600&nbsp;m) and the valley towns let you camp low and warm. Days climb into the side gorges to 2500–3500&nbsp;m, then drop back down to a comfortable bed for the night.</p>
-        </div>
-        <div class="about-card">
-          <h3>Real roads &amp; real elevation</h3>
-          <p>Every track is snapped to actual roads and trails using the open-source BRouter engine, with real SRTM elevation. Tarmac shore roads link the gravel gorge climbs. Download the GPX and ride it.</p>
-        </div>
-        <div class="about-card">
-          <h3>Sensible limits</h3>
-          <p>Never more than 100&nbsp;km in a day (usually 60–90). The lake &amp; valley routes keep camps below ~2000&nbsp;m and passes under 3500&nbsp;m; the high-pass routes cross classics like Kegety (~3780&nbsp;m) with a few high camps. We avoid the long Töö-Ashuu tunnel, the busy Tokmok–Balykchy (Boom Gorge) road, the Kumtor mine and the Torugart border zone.</p>
-        </div>
-        <div class="about-card">
-          <h3>Always near a shop</h3>
-          <p>Resupply towns are flagged on every map and in every day card, so you know where the next bakery, shop or chai stop is.</p>
-        </div>
-      </div>
-      <p class="disclaimer">Routes are planning aids generated from open data. Conditions in the mountains change fast — always carry maps, check the weather, treat your water, and ride within your limits.</p>
     </section>
   </main>
 
@@ -146,7 +121,10 @@
     </div>
     <div class="planner-summary">
       <div class="planner-totals" id="plannerTotals"></div>
-      <div class="pl-chartwrap"><canvas id="plannerChart"></canvas></div>
+      <div class="pl-chartwrap">
+        <div class="pl-chart-head"><span>Elevation profile</span><span id="plannerHoverInfo" class="pl-hover"></span></div>
+        <canvas id="plannerChart"></canvas>
+      </div>
     </div>
     <div class="planner-body">
       <div class="planner-mapwrap" id="plannerMapWrap">
@@ -154,14 +132,20 @@
         <div class="master-legend">
           <div class="lg"><span class="sw" style="background:#e8442b"></span>Routed (your clicks)</div>
           <div class="lg"><span class="sw" style="background:#2f7fb5"></span>Added segment</div>
+          <div class="lg"><span class="sw dot2" style="background:#2f7fb5"></span>Resupply town</div>
+          <div class="lg"><span class="train-marker" style="width:13px;height:13px;font-size:9px">▤</span>Train stop</div>
         </div>
       </div>
       <aside class="planner-panel">
-        <div class="pl-legs-head"><h3>Your route</h3></div>
-        <ol id="plannerLegs" class="pl-legs"></ol>
-        <h3>Add a segment</h3>
-        <p class="mp-hint">Click to append. Connectors first, then real SRMR sections.</p>
-        <ul id="plannerSegList" class="mp-list"></ul>
+        <div class="pl-col">
+          <div class="pl-legs-head"><h3>Your route</h3></div>
+          <ol id="plannerLegs" class="pl-legs"></ol>
+        </div>
+        <div class="pl-col">
+          <h3>Add a segment</h3>
+          <p class="mp-hint">Click to append. Connectors first, then real SRMR sections.</p>
+          <ul id="plannerSegList" class="mp-list"></ul>
+        </div>
       </aside>
     </div>
   </main>

@@ -190,6 +190,23 @@ The Silk Road Mountain Race data has its own pipeline (run in order):
 `scripts/srmr_segments.py` (hub-to-hub segment library → `data/srmr_segments.json`) →
 `scripts/enrich_passes.py` (fills reference-pass profiles from the real tracks).
 
+## Add your own route
+
+To publish one of your own rides as a permanent route on the site, feed it a GPX:
+
+```bash
+python3 scripts/add_route.py my-ride.gpx --name "My Grand Tour" \
+    --start Bishkek --color "#0891b2" --day-km 80
+git add data && git commit -m "Add route: My Grand Tour" && git push
+```
+
+It parses the GPX, splits it into ~daily chunks, computes stats + display
+geometry, and registers the route in **`data/custom_routes.json`** (plus its own
+`data/geo/<id>.json` and `data/gpx/<id>.gpx`). The website merges these in and
+shows them in an **"Added routes"** family on the landing page, with the same map
++ elevation + day-by-day view as the built-in routes. `generate_routes.py` never
+touches `custom_routes.json`, so regenerating the built-ins won't clobber yours.
+
 ## Tech
 - [Leaflet](https://leafletjs.com/) + OpenTopoMap / OpenStreetMap tiles
 - [Chart.js](https://www.chartjs.org/) for the elevation profile
