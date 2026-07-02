@@ -106,19 +106,7 @@
       <h1>Route planner</h1>
       <p>Build your own line: <strong>click the map</strong> to drop points and it routes between them, and/or <strong>add ready-made segments</strong> from the connectors and the real Silk Road Mountain Race sections. Watch the distance and elevation profile build up, then download the GPX.</p>
     </div>
-    <div class="planner-toolbar">
-      <label class="pl-field">Routing
-        <select id="plannerProfile">
-          <option value="trekking">Gravel / mixed</option>
-          <option value="car-fast">Road</option>
-        </select>
-      </label>
-      <button class="pl-btn" id="plannerUndo">↶ Undo</button>
-      <button class="pl-btn" id="plannerClear">Clear</button>
-      <label class="pl-btn pl-upload">Upload GPX<input type="file" id="plannerUpload" accept=".gpx,application/gpx+xml" hidden></label>
-      <a class="btn primary pl-gpx" id="plannerGpx">Download GPX</a>
-      <span class="pl-status" id="plannerStatus">Click the map to set your start.</span>
-    </div>
+    <p class="pl-status" id="plannerStatus">Click the map to set your start.</p>
     <div class="planner-summary">
       <div class="planner-totals" id="plannerTotals"></div>
       <div class="pl-chartwrap">
@@ -126,7 +114,21 @@
         <canvas id="plannerChart"></canvas>
       </div>
     </div>
-    <div class="master-toolbar" id="plannerLayers"></div>
+    <div class="planner-controls-row">
+      <div class="master-toolbar" id="plannerLayers"></div>
+      <div class="planner-toolbar">
+        <label class="pl-field">Routing
+          <select id="plannerProfile">
+            <option value="trekking">Gravel / mixed</option>
+            <option value="car-fast">Road</option>
+          </select>
+        </label>
+        <button class="pl-btn" id="plannerUndo">↶ Undo</button>
+        <button class="pl-btn" id="plannerClear">Clear</button>
+        <label class="pl-btn pl-upload">Upload GPX<input type="file" id="plannerUpload" accept=".gpx,application/gpx+xml" hidden></label>
+        <a class="btn primary pl-gpx" id="plannerGpx">Save GPX</a>
+      </div>
+    </div>
     <div class="planner-body">
       <div class="planner-mapwrap" id="plannerMapWrap">
         <div id="plannerMap"></div>

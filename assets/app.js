@@ -804,7 +804,17 @@
 
   /* ----------------------------- planner ----------------------------- */
   let plannerMap = null, plannerLayer = null, plannerChart = null, plannerData = null;
-  let plannerLegs = [], plannerStart = null, plannerLast = null, plannerBusy = false;
+  let plannerLegs = [], plannerStart = null, plannerLast = null, plannerBusy = false, plannerSrmrLayer = null;
+  let plannerActiveEnd = "end", plannerSeq = 0;   // which end new pieces attach to
+
+  function plannerSetActiveEnd(which) {
+    if (plannerActiveEnd === which) return;
+    plannerActiveEnd = which;
+    plStatus(which === "start"
+      ? "Now extending from the START — click the map or a segment."
+      : "Now extending from the END — click the map or a segment.");
+    plannerRedraw(false);
+  }
   let plannerHoverDot = null, plannerHoverPts = [];
 
   function plannerSetHover(idx) {
@@ -876,11 +886,20 @@
     if (plannerBusy) return;
     const p = [latlng.lat, latlng.lng];
     if (!plannerLast) { plannerStart = p; plannerLast = p; plannerRedraw(false); plStatus("Click the next point — I'll route to it."); return; }
+    const atStart = plannerActiveEnd === "start";
     plannerBusy = true; plStatus("routing…");
     try {
-      const leg = await plRouteLeg(plannerLast, p);
-      plannerLegs.push(leg);
-      plannerLast = [leg.coords[leg.coords.length - 1][0], leg.coords[leg.coords.length - 1][1]];
+      if (atStart) {
+        const leg = await plRouteLeg(p, plannerStart);   // new point -> current start
+        leg.seq = ++plannerSeq;
+        plannerLegs.unshift(leg);
+        plannerStart = [leg.coords[0][0], leg.coords[0][1]];
+      } else {
+        const leg = await plRouteLeg(plannerLast, p);
+        leg.seq = ++plannerSeq;
+        plannerLegs.push(leg);
+        plannerLast = [leg.coords[leg.coords.length - 1][0], leg.coords[leg.coords.length - 1][1]];
+      }
       plStatus("Added. Keep clicking, or add a segment.");
     } catch (e) {
       plStatus("No route to that spot — try nearer a road or track.");
@@ -903,33 +922,56 @@
     let coords3d = plInterp(seg.coords, seg.profile);
     let reversed = false;
 
-    if (plannerLast) {
-      // attach to whichever end of the segment is nearest to the current route end
-      const dStart = haversine(plannerLast, [coords3d[0][0], coords3d[0][1]]);
-      const dEnd = haversine(plannerLast, [coords3d[coords3d.length - 1][0], coords3d[coords3d.length - 1][1]]);
-      if (dEnd < dStart) { coords3d = coords3d.slice().reverse(); reversed = true; }
-      const gap = Math.min(dStart, dEnd);
-      if (gap > 250) {
-        plannerBusy = true; plStatus("connecting to segment…");
-        try {
-          const conn = await plRouteLeg(plannerLast, [coords3d[0][0], coords3d[0][1]]);
-          conn.autoFor = segId;               // tie connector to this segment
-          plannerLegs.push(conn);
-        } catch (e) {
-          plStatus("Couldn't connect to that segment."); plannerBusy = false; return;
-        }
-        plannerBusy = false;
-      }
-    } else {
+    const mkSegLeg = () => {
+      const st = plLegStats(coords3d);
+      return { kind: "segment", segId, seq: ++plannerSeq,
+        name: (reversed ? flipName(seg.name) : seg.name) + (seg.year ? ` · SRMR ${seg.year}` : ""),
+        color: "#2f7fb5", coords: coords3d, dist_km: st.dist_km, ascent: st.ascent };
+    };
+
+    // empty route: drop the segment as-is
+    if (!plannerLast) {
+      plannerLegs.push(mkSegLeg());
       plannerStart = [coords3d[0][0], coords3d[0][1]];
+      plannerLast = [coords3d[coords3d.length - 1][0], coords3d[coords3d.length - 1][1]];
+      plStatus("Segment added — click it again to remove.");
+      plannerRedraw(true); return;
     }
 
-    const st = plLegStats(coords3d);          // distance/ascent for the actual orientation
-    const dispName = (reversed ? flipName(seg.name) : seg.name) + (seg.year ? ` · SRMR ${seg.year}` : "");
-    plannerLegs.push({ kind: "segment", segId, name: dispName,
-      color: "#2f7fb5", coords: coords3d, dist_km: st.dist_km, ascent: st.ascent });
-    plannerLast = [coords3d[coords3d.length - 1][0], coords3d[coords3d.length - 1][1]];
-    plStatus("Segment added — click it again in the list to remove.");
+    const atStart = plannerActiveEnd === "start";
+    const anchor = atStart ? plannerStart : plannerLast;
+    const d0 = haversine(anchor, [coords3d[0][0], coords3d[0][1]]);
+    const dN = haversine(anchor, [coords3d[coords3d.length - 1][0], coords3d[coords3d.length - 1][1]]);
+    // orient so the connecting end of the segment is nearest the active anchor
+    if (atStart ? (d0 < dN) : (dN < d0)) { coords3d = coords3d.slice().reverse(); reversed = true; }
+    const connPt = atStart ? coords3d[coords3d.length - 1] : coords3d[0];
+    const gap = haversine(anchor, [connPt[0], connPt[1]]);
+
+    let connLeg = null;
+    if (gap > 250) {
+      plannerBusy = true; plStatus("connecting to segment…");
+      try {
+        connLeg = atStart
+          ? await plRouteLeg([connPt[0], connPt[1]], anchor)   // segment end -> current start
+          : await plRouteLeg(anchor, [connPt[0], connPt[1]]);  // current end -> segment start
+        connLeg.autoFor = segId;
+      } catch (e) {
+        plStatus("Couldn't connect to that segment."); plannerBusy = false; return;
+      }
+      plannerBusy = false;
+    }
+
+    const segLeg = mkSegLeg();
+    if (atStart) {
+      if (connLeg) plannerLegs.unshift(connLeg);
+      plannerLegs.unshift(segLeg);
+      plannerStart = [coords3d[0][0], coords3d[0][1]];
+    } else {
+      if (connLeg) plannerLegs.push(connLeg);
+      plannerLegs.push(segLeg);
+      plannerLast = [coords3d[coords3d.length - 1][0], coords3d[coords3d.length - 1][1]];
+    }
+    plStatus("Segment added — click it again to remove.");
     plannerRedraw(true);
   }
 
@@ -948,6 +990,19 @@
     plannerRedraw(true);
   }
 
+  function plannerRemoveLeg(idx) {
+    const leg = plannerLegs[idx];
+    if (!leg) return;
+    if (leg.segId) {
+      plannerLegs = plannerLegs.filter((l) => l.segId !== leg.segId && l.autoFor !== leg.segId);
+    } else {
+      plannerLegs.splice(idx, 1);
+    }
+    plannerRecompute();
+    plStatus("Piece removed.");
+    plannerRedraw(true);
+  }
+
   function plannerRefreshSegList() {
     const ids = new Set(plannerLegs.map((l) => l.segId).filter(Boolean));
     document.querySelectorAll("#plannerSegList .mp-item").forEach((li) => {
@@ -963,8 +1018,19 @@
       L.polyline(ll, { color: leg.color, weight: 4, opacity: .9 }).addTo(plannerLayer);
       bounds.push(...ll);
     });
-    if (plannerStart) L.circleMarker(plannerStart, { radius: 6, color: "#fff", weight: 2, fillColor: "#2c6b3f", fillOpacity: 1 }).bindTooltip("Start").addTo(plannerLayer);
-    if (plannerLast && plannerLegs.length) L.circleMarker(plannerLast, { radius: 6, color: "#fff", weight: 2, fillColor: "#b3261e", fillOpacity: 1 }).bindTooltip("End").addTo(plannerLayer);
+    const startActive = plannerActiveEnd === "start", endActive = !startActive;
+    if (plannerStart) {
+      L.circleMarker(plannerStart, { radius: startActive ? 8 : 6, color: startActive ? "#1c2128" : "#fff", weight: startActive ? 3 : 2, fillColor: "#2c6b3f", fillOpacity: 1 })
+        .bindTooltip(startActive ? "Start — active, extending here" : "Start — click to extend from here")
+        .on("click", (e) => { L.DomEvent.stopPropagation(e); plannerSetActiveEnd("start"); })
+        .addTo(plannerLayer);
+    }
+    if (plannerLast && plannerLegs.length) {
+      L.circleMarker(plannerLast, { radius: endActive ? 8 : 6, color: endActive ? "#1c2128" : "#fff", weight: endActive ? 3 : 2, fillColor: "#b3261e", fillOpacity: 1 })
+        .bindTooltip(endActive ? "End — active, extending here" : "End — click to extend from here")
+        .on("click", (e) => { L.DomEvent.stopPropagation(e); plannerSetActiveEnd("end"); })
+        .addTo(plannerLayer);
+    }
     if (fit && bounds.length) plannerMap.fitBounds(bounds, { padding: [40, 40] });
     plannerUpdate();
   }
@@ -1018,15 +1084,17 @@
     if (!plannerLegs.length) { ol.innerHTML = '<li class="pl-empty">No pieces yet. Click the map to set a start, then keep clicking — or add a segment below.</li>'; }
     else {
       ol.innerHTML = "";
-      plannerLegs.forEach((l) => {
+      plannerLegs.forEach((l, idx) => {
         const li = document.createElement("li");
         li.className = "pl-leg";
-        li.innerHTML = `<span class="lg-dot" style="background:${l.color}"></span><span class="lg-name">${l.name}</span><span class="lg-meta">${l.dist_km.toFixed(1)} km · ↑ ${fmtM(l.ascent)}</span>`;
+        li.innerHTML = `<span class="lg-dot" style="background:${l.color}"></span><span class="lg-name">${l.name}</span><span class="lg-meta">${l.dist_km.toFixed(1)} km · ↑ ${fmtM(l.ascent)}</span><button class="lg-x" title="Remove this piece" aria-label="Remove">×</button>`;
+        li.querySelector(".lg-x").addEventListener("click", () => plannerRemoveLeg(idx));
         ol.appendChild(li);
       });
     }
 
     plannerRefreshSegList();
+    plannerRefreshSrmrLayer();
 
     const gpxA = $("#plannerGpx");
     if (gpxA._url) URL.revokeObjectURL(gpxA._url);
@@ -1042,6 +1110,35 @@
     let s = '<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="tour-de-kyrgyzstan" xmlns="http://www.topografix.com/GPX/1/1"><trk><name>My planned route</name><trkseg>';
     coords.forEach((c) => { s += `<trkpt lat="${c[0].toFixed(6)}" lon="${c[1].toFixed(6)}"><ele>${(c[2] || 0).toFixed(1)}</ele></trkpt>`; });
     return s + "</trkseg></trk></gpx>";
+  }
+
+  // faint (30%) SRMR segments drawn on the planner map; click one to add/remove it
+  function buildPlannerSrmrLayer(segs) {
+    const g = L.layerGroup();
+    (segs || []).forEach((s) => {
+      const segId = segIdOf(s);
+      const line = L.polyline(s.coords, {
+        pane: "srmrsegPane", color: s.color || "#7b1fa2", weight: 3, opacity: .3
+      }).bindTooltip(`${s.name} · ${Math.round(s.distance_km)} km · SRMR ${s.year}`, { sticky: true });
+      line._segId = segId; line._seg = s;
+      line.on("click", (e) => {
+        L.DomEvent.stopPropagation(e);          // don't drop a routed point too
+        if (plannerLegs.some((l) => l.segId === segId)) plannerRemoveSegment(segId);
+        else plannerAddSegment(s, segId);
+      });
+      line.addTo(g);
+    });
+    return g;
+  }
+
+  // brighten SRMR map segments that are currently part of the route
+  function plannerRefreshSrmrLayer() {
+    if (!plannerSrmrLayer) return;
+    const ids = new Set(plannerLegs.map((l) => l.segId).filter(Boolean));
+    plannerSrmrLayer.eachLayer((line) => {
+      const on = ids.has(line._segId);
+      line.setStyle({ opacity: on ? 0.9 : 0.3, weight: on ? 4 : 3 });
+    });
   }
 
   function buildPlannerSegList() {
@@ -1073,6 +1170,9 @@
       layers["Cycle"].addTo(plannerMap);
       addFullscreenControl(plannerMap, "plannerMapWrap");
       plannerMap.setView([42.1, 75.8], 7);
+      // a low pane so the faint SRMR segments sit under the drawn route
+      plannerMap.createPane("srmrsegPane");
+      plannerMap.getPane("srmrsegPane").style.zIndex = 350;
       plannerLayer = L.layerGroup().addTo(plannerMap);
       plannerMap.on("click", (e) => plannerAddPoint(e.latlng));
       const [seg, ss, pois, resupply, permits] = await Promise.all([
@@ -1089,8 +1189,10 @@
 
       const gPoi = buildPoiLayer(resupply.places, pois.trains);
       const gPermit = buildPermitLayer(permits.zones);
+      plannerSrmrLayer = buildPlannerSrmrLayer(plannerData.srmr);
       buildLayerToggles($("#plannerLayers"), plannerMap, [
         ["poi", "Resupply & trains", "#2f7fb5", true, gPoi],
+        ["srmrseg", "SRMR segments", "#7b1fa2", false, plannerSrmrLayer],
         ["permit", "Border permits", "#b3261e", false, gPermit]
       ]);
 
@@ -1116,9 +1218,10 @@
       for (let i = 0; i < 3000; i++) d.push(coords[Math.floor(i * step)]);
       d.push(coords[coords.length - 1]); coords = d;
     }
-    plannerLegs = [{ kind: "upload", name: "Uploaded GPX", color: "#e8442b", coords, ...plLegStats(coords) }];
+    plannerLegs = [{ kind: "upload", name: "Uploaded GPX", color: "#e8442b", seq: ++plannerSeq, coords, ...plLegStats(coords) }];
     plannerStart = [coords[0][0], coords[0][1]];
     plannerLast = [coords[coords.length - 1][0], coords[coords.length - 1][1]];
+    plannerActiveEnd = "end";
     plStatus("GPX loaded — keep clicking or add segments to extend it.");
     plannerRedraw(true);
   }
@@ -1135,14 +1238,18 @@
   });
 
   $("#plannerUndo").addEventListener("click", () => {
-    plannerLegs.pop();
-    plannerLast = plannerLegs.length
-      ? (() => { const c = plannerLegs[plannerLegs.length - 1].coords; return [c[c.length - 1][0], c[c.length - 1][1]]; })()
-      : plannerStart;
+    if (!plannerLegs.length) return;
+    // remove the most recently added piece (highest seq), whichever end it's on
+    let target = null;
+    plannerLegs.forEach((l) => { if (l.autoFor === undefined && (target === null || (l.seq || 0) > (target.seq || 0))) target = l; });
+    if (!target) target = plannerLegs[plannerLegs.length - 1];
+    if (target.segId) plannerLegs = plannerLegs.filter((l) => l.segId !== target.segId && l.autoFor !== target.segId);
+    else plannerLegs.splice(plannerLegs.indexOf(target), 1);
+    plannerRecompute();
     plannerRedraw(false);
   });
   $("#plannerClear").addEventListener("click", () => {
-    plannerLegs = []; plannerStart = null; plannerLast = null;
+    plannerLegs = []; plannerStart = null; plannerLast = null; plannerActiveEnd = "end"; plannerSeq = 0;
     plannerRedraw(false); plStatus("Cleared. Click the map to set your start.");
   });
 
