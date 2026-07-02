@@ -31,7 +31,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(os.path.dirname(HERE), "data")
 
 CELL_M = 700         # grid cell size for snapping / junction detection
-MIN_SEG_KM = 5       # ignore tiny slivers between very close crossroads
+MIN_SEG_KM = 30      # merge target: pieces grow to about this before a new break
 NAME_MAX_M = 25000   # a node is named after a town only if one is this close
 LAT0 = 42.0
 DLAT = CELL_M / 111320.0
@@ -161,28 +161,57 @@ def main():
         if len(nb) >= 3:                                    # crossroads
             node_cells.add(c)
 
-    # 3) cut every track at node cells
+    # representative point for every node cell (mean of all track points that
+    # fall in it). Segment ends are welded to this so pieces meeting at a
+    # crossroad share the exact same point -> no seam gaps between editions.
+    acc = defaultdict(lambda: [0.0, 0.0, 0])
+    for t in tracks:
+        for p, c in zip(t["pts"], t["cells"]):
+            if c in node_cells:
+                acc[c][0] += p[0]; acc[c][1] += p[1]; acc[c][2] += 1
+    node_pt = {c: (a[0] / a[2], a[1] / a[2]) for c, a in acc.items()}
+
+    # 3) cut every track at node cells (crossroads + endpoints). Every edition is
+    #    kept, so corridors ridden by several editions appear as separate
+    #    overlapping segments rather than cancelling out.
     label = make_namer(load_places())
-    kept = {}
+    segs = []
     for t in tracks:
         pts, cells = t["pts"], t["cells"]
-        bnds = [0]
+
+        # candidate cuts: transitions into a node cell, plus the track ends
+        cuts = [0]
         for i in range(1, len(pts)):
             if cells[i] in node_cells and cells[i] != cells[i - 1]:
-                bnds.append(i)
-        if bnds[-1] != len(pts) - 1:
-            bnds.append(len(pts) - 1)
-        bnds = sorted(set(bnds))
+                cuts.append(i)
+        if cuts[-1] != len(pts) - 1:
+            cuts.append(len(pts) - 1)
+        cuts = sorted(set(cuts))
 
-        for j in range(len(bnds) - 1):
-            i0, i1 = bnds[j], bnds[j + 1]
-            sub = pts[i0:i1 + 1]
+        # merge slivers so each piece is >= MIN_SEG_KM and the track stays fully
+        # tiled (no dropped pieces -> no gaps)
+        bounds = [cuts[0]]
+        for c in cuts[1:-1]:
+            if seg_stats(pts[bounds[-1]:c + 1])[0] >= MIN_SEG_KM:
+                bounds.append(c)
+        end = cuts[-1]
+        if len(bounds) == 1 or seg_stats(pts[bounds[-1]:end + 1])[0] >= MIN_SEG_KM:
+            bounds.append(end)
+        else:
+            bounds[-1] = end          # fold a short tail into the previous piece
+
+        for j in range(len(bounds) - 1):
+            i0, i1 = bounds[j], bounds[j + 1]
+            sub = [list(c) for c in pts[i0:i1 + 1]]
             if len(sub) < 4:
                 continue
-            dist, asc, mn, mx = seg_stats(sub)
-            if dist < MIN_SEG_KM:
-                continue
+            # weld the two ends onto the shared crossroad points
+            if cells[i0] in node_pt:
+                sub[0] = [node_pt[cells[i0]][0], node_pt[cells[i0]][1], sub[0][2]]
+            if cells[i1] in node_pt:
+                sub[-1] = [node_pt[cells[i1]][0], node_pt[cells[i1]][1], sub[-1][2]]
 
+            dist, asc, mn, mx = seg_stats(sub)
             a = label(sub[0][0], sub[0][1])
             b = label(sub[-1][0], sub[-1][1])
             if a and b and a != b:
@@ -194,28 +223,24 @@ def main():
             else:
                 nm = "Remote section"
 
-            # key: endpoint cells (unordered) + a coarse midpoint to keep
-            # genuinely different roads between the same two junctions apart
-            mid = sub[len(sub) // 2]
-            midc = (int(round(mid[0] / (DLAT * 4))), int(round(mid[1] / (DLON * 4))))
-            key = (frozenset((cells[i0], cells[i1])), midc)
-
-            kept[key] = {
+            segs.append({
                 "name": nm, "from": a or "", "to": b or "",
                 "year": t["year"], "color": t["color"],
                 "distance_km": round(dist, 1), "ascent_m": int(round(asc)),
                 "min_ele": int(round(mn)), "max_ele": int(round(mx)),
                 "coords": [[round(c[0], 5), round(c[1], 5)] for c in sub],
                 "profile": profile(sub),
-            }  # SOURCES ascending -> most recent edition wins
+            })
 
-    segs = sorted(kept.values(), key=lambda r: -r["distance_km"])
+    segs.sort(key=lambda r: (r["year"], -r["distance_km"]))
+    for i, r in enumerate(segs):
+        r["id"] = f"srmrseg-{i}"
     with open(os.path.join(DATA, "srmr_segments.json"), "w") as f:
         json.dump({"segments": segs}, f, ensure_ascii=False)
-    print(f"\nWrote {len(segs)} SRMR segments (nodes = endpoints + crossroads)")
-    for r in segs[:60]:
-        print(f"   {r['name'][:34]:34s} {r['distance_km']:6.1f} km  +{r['ascent_m']:5d} m  "
-              f"max {r['max_ele']:4d}  (SRMR {r['year']})")
+    by_year = {}
+    for r in segs:
+        by_year[r["year"]] = by_year.get(r["year"], 0) + 1
+    print(f"\nWrote {len(segs)} SRMR segments — all editions kept (per year: {by_year})")
 
 
 if __name__ == "__main__":

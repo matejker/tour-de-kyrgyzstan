@@ -911,7 +911,7 @@
     plannerBusy = false; plannerRedraw(false);
   }
 
-  const segIdOf = (s) => (s.year ? `srmr:${s.year}:${s.name}` : `seg:${s.name}`);
+  const segIdOf = (s) => s.id || (s.year ? `srmr:${s.year}:${s.name}` : `seg:${s.name}`);
 
   function flipName(name) {
     for (const sep of [" ↔ ", " → ", " -> "]) {
