@@ -40,9 +40,13 @@
     "Topo (Esri)": L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}", {
       maxZoom: 19, attribution: "Tiles © Esri — Esri, DeLorme, NAVTEQ, and contributors"
     }),
-    // satellite imagery — for scouting terrain, rivers and jailoos
-    "Satellite": L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", {
-      maxZoom: 19, attribution: "Imagery © Esri, Maxar, Earthstar Geographics"
+    // satellite imagery — Google, the most detailed for scouting terrain/tracks
+    "Satellite": L.tileLayer("https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}", {
+      maxZoom: 21, subdomains: ["mt0", "mt1", "mt2", "mt3"], attribution: "Imagery © Google"
+    }),
+    // Sentinel-2 cloudless composite — no clouds/snow haze, great for the high country
+    "Satellite (cloud-free)": L.tileLayer("https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless-2021_3857/default/g/{z}/{y}/{x}.jpg", {
+      maxZoom: 18, maxNativeZoom: 16, attribution: "Sentinel-2 cloudless 2021 © EOX IT Services (CC-BY-NC-SA)"
     }),
     // plain OpenStreetMap
     "Streets": L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
