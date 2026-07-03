@@ -5,8 +5,6 @@ and elevation profiles (Leaflet + Chart.js), no backend or build step.
 
 ## Pages
 
-- **Routes** — 8 curated routes plus any GPX routes you import, each with a
-  day-by-day map, elevation profile, stats and GPX download.
 - **Master map** — all routes overlaid with toggleable layers: mountain passes
   (with climb profiles), connector segments, SRMR race segments, resupply
   towns/villages, train stops, and border-permit zones.
