@@ -54,6 +54,23 @@
     })
   });
 
+  // Strava global cycling heatmap in a dedicated pane so it always sits above the base
+  // tiles (even after a base-layer switch) but below the route lines/markers. Low/mid zoom
+  // is public; high-zoom tiles need a logged-in Strava session, so we cap maxNativeZoom.
+  const stravaHeat = (map) => {
+    if (!map.getPane("stravaHeat")) {
+      map.createPane("stravaHeat");
+      map.getPane("stravaHeat").style.zIndex = 250;   // base tiles 200 < this < overlays 400
+      map.getPane("stravaHeat").style.pointerEvents = "none";
+    }
+    return L.tileLayer(
+      "https://heatmap-external-{s}.strava.com/tiles/ride/hot/{z}/{x}/{y}.png?px=256", {
+        pane: "stravaHeat", subdomains: "abc", maxZoom: 18, maxNativeZoom: 12, opacity: 0.8,
+        errorTileUrl: "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==",
+        attribution: "Heatmap © Strava"
+      });
+  };
+
   const $ = (s) => document.querySelector(s);
   const fmtKm = (v) => Math.round(v).toLocaleString() + " km";
   const fmtM = (v) => Math.round(v).toLocaleString() + " m";
@@ -189,9 +206,14 @@
     const r = ROUTES.find((x) => x.id === id);
     if (!r) return;
     location.hash = "r/" + id;
-    const geo = await fetch(r.geo).then((res) => res.json());
+    const [geo, pois, resupply, permits] = await Promise.all([
+      fetch(r.geo).then((res) => res.json()),
+      fetch("data/pois.json").then((res) => res.json()).catch(() => ({ trains: [] })),
+      fetch("data/resupply.json").then((res) => res.json()).catch(() => ({ places: [] })),
+      fetch("data/permits.json").then((res) => res.json()).catch(() => ({ zones: [] }))
+    ]);
     currentGeo = geo;
-    showDetailView(r, geo);
+    showDetailView(r, geo, { pois, resupply, permits });
     window.scrollTo(0, 0);
   }
 
@@ -200,8 +222,9 @@
     return Array.from({ length: n }, (_, i) => (i % 2 === 0 ? a : b));
   }
 
-  function showDetailView(r, geo) {
+  function showDetailView(r, geo, overlays) {
     showView("detail");
+    overlays = overlays || {};
 
     $("#dEyebrow").textContent = `Start · ${r.start}  ·  ${r.num_days} days` +
       (r.custom ? "  ·  Imported from GPX"
@@ -227,7 +250,7 @@
     routeMap = L.map("routeMap", { scrollWheelZoom: true });
     const layers = tileLayers();
     layers["Cycle"].addTo(routeMap);
-    L.control.layers(layers, null, { position: "topright" }).addTo(routeMap);
+    L.control.layers(layers, { "Strava heatmap": stravaHeat(routeMap) }, { position: "topright" }).addTo(routeMap);
 
     dayLayers = [];
     const seenShop = new Set();
@@ -259,6 +282,14 @@
     });
     routeMap.fitBounds(geo.bounds, { padding: [20, 20] });
     setTimeout(() => routeMap.invalidateSize(), 60);
+
+    // toggleable overlays (resupply/trains network + border permits), off by default
+    const gPoi = buildPoiLayer((overlays.resupply || {}).places, (overlays.pois || {}).trains);
+    const gPermit = buildPermitLayer((overlays.permits || {}).zones);
+    buildLayerToggles($("#detailLayers"), routeMap, [
+      ["poi", "Resupply & trains", "#2f7fb5", false, gPoi],
+      ["permit", "Border permits", "#b3261e", false, gPermit]
+    ]);
 
     hoverDot = L.circleMarker([geo.days[0].coords[0][0], geo.days[0].coords[0][1]], {
       radius: 6, color: "#fff", weight: 2, fillColor: r.color, fillOpacity: 1, interactive: false
@@ -434,7 +465,7 @@
     masterMap = L.map("masterMap", { scrollWheelZoom: true });
     const layers = tileLayers();
     layers["Cycle"].addTo(masterMap);
-    L.control.layers(layers, null, { position: "topright" }).addTo(masterMap);
+    L.control.layers(layers, { "Strava heatmap": stravaHeat(masterMap) }, { position: "topright" }).addTo(masterMap);
 
     // routes (faint)
     const gRoutes = L.layerGroup();
@@ -676,7 +707,7 @@
     srmrMap = L.map("srmrMap", { scrollWheelZoom: true });
     const layers = tileLayers();
     layers["Cycle"].addTo(srmrMap);
-    L.control.layers(layers, null, { position: "topright" }).addTo(srmrMap);
+    L.control.layers(layers, { "Strava heatmap": stravaHeat(srmrMap) }, { position: "topright" }).addTo(srmrMap);
     addFullscreenControl(srmrMap, "srmrMapWrap");
 
     const eds = Object.values(srmrGeo).sort((a, b) => a.year - b.year);
@@ -1188,8 +1219,8 @@
       ]);
       plannerData = { connectors: seg.segments, srmr: ss.segments };
 
-      // base layers only in the corner control; overlays use pill toggles (like the master map)
-      L.control.layers(layers, null, { position: "topright" }).addTo(plannerMap);
+      // base layers + Strava heatmap in the corner control; other overlays use pill toggles
+      L.control.layers(layers, { "Strava heatmap": stravaHeat(plannerMap) }, { position: "topright" }).addTo(plannerMap);
 
       const gPoi = buildPoiLayer(resupply.places, pois.trains);
       const gPermit = buildPermitLayer(permits.zones);
